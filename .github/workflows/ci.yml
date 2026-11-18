@@ -72,6 +72,9 @@ jobs:
           cat "Diagnostic CI.txt"
           exit $code
 
+      - name: Conteneur (M7)
+        run: docker build -t dudu:ci .
+
       - name: Synchroniser le dépôt
         if: always()
         run: |
