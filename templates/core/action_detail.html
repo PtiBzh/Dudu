@@ -36,6 +36,26 @@
     {% endif %}
   </dl>
 
+  <h2>Photo après</h2>
+  {% if action.photos_apres.count %}
+  <div class="galerie">
+    {% for photo in action.photos_apres.all %}
+    <img class="photo" src="{{ photo.fichier.url }}" alt="Photo après — {{ action.intitule }}">
+    {% endfor %}
+  </div>
+  {% elif action.statut == 'faite' %}
+  <p class="apercu">Action clôturée sans photo « après » : elle
+  témoigne du travail accompli, ajoute-la ici.</p>
+  {% endif %}
+  {% if modifiable %}
+  <form class="ligne" method="post" enctype="multipart/form-data"
+        action="{% url 'action_photo_ajouter' action.pk %}">
+    {% csrf_token %}
+    <input type="file" name="fichier" accept="image/*" required aria-label="Photo après">
+    <button class="bouton discret" type="submit">Ajouter la photo après</button>
+  </form>
+  {% endif %}
+
   <div class="actions">
     {% if modifiable %}
       <a class="bouton" href="{% url 'action_modifier' action.pk %}">Modifier</a>

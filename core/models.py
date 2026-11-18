@@ -5,6 +5,7 @@ M1 : postes de travail, cotation santé/sécurité, traçabilité des éditions.
 M2 : actions d'amélioration (responsable et échéance obligatoires).
 M3 : couleurs des valeurs de cotation pour les marqueurs carte.
 M4 : revues collégiales — journal historique des décisions.
+M5 : photos avant/après, compressées à l'upload, datant la clôture.
 
 Règles de gestion (Spec Dudu.md) :
 1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé ;
@@ -268,6 +269,14 @@ class Action(models.Model):
     )
     motif_abandon = models.TextField("motif d'abandon", blank=True)
     date_creation = models.DateTimeField("créée le", auto_now_add=True)
+    date_cloture = models.DateTimeField(
+        "clôturée le",
+        null=True,
+        blank=True,
+        help_text="Automatique au passage en « faite » ; effacée si "
+        "l'action se rouvre. Sert aux revues : actions clôturées "
+        "depuis la revue précédente.",
+    )
 
     # Position héritée du poste à la création, modifiable ensuite.
     latitude = models.FloatField("latitude", null=True, blank=True)
@@ -295,6 +304,20 @@ class Action(models.Model):
     @property
     def est_ouverte(self):
         return self.statut in (self.Statut.A_FAIRE, self.Statut.EN_COURS)
+
+    def save(self, *args, **kwargs):
+        """La clôture se date, la réouverture l'efface : les revues
+        affichent les actions accomplies depuis la précédente. La
+        photo « après » reste demandée (avertissement), jamais
+        exigée (spec : non bloquant)."""
+        from django.utils import timezone
+
+        if self.statut == self.Statut.FAITE:
+            if self.date_cloture is None:
+                self.date_cloture = timezone.now()
+        else:
+            self.date_cloture = None
+        super().save(*args, **kwargs)
 
     @property
     def en_retard(self):
@@ -412,4 +435,91 @@ class ChangementSatisfaction(models.Model):
         raise PermissionDenied(
             "Un changement de satisfaction ne se supprime pas : le "
             "journal historique est immuable."
+        )
+
+
+def dossier_photos(instance, filename):
+    """Spec technique : les photos vivent sous /data/photos/AAAA/
+    (MEDIA_ROOT se règle par DUDU_DATA en production)."""
+    from django.utils import timezone
+
+    return f"photos/{timezone.localdate().year}/{filename}"
+
+
+class Photo(models.Model):
+    """Photo avant (situation constatée, rattachée au poste) ou
+    après (travail accompli, rattachée à l'action). Redimensionnée
+    et recompressée à l'upload (~1600 px JPEG, spec technique) :
+    le volume /data reste léger, l'original n'est pas conservé.
+    """
+
+    class Type(models.TextChoices):
+        AVANT = "avant", "Avant"
+        APRES = "apres", "Après"
+
+    type = models.CharField("type", max_length=10, choices=Type.choices)
+    fichier = models.ImageField("fichier", upload_to=dossier_photos)
+    auteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="auteur",
+        on_delete=models.PROTECT,
+        related_name="photos_ajoutees",
+    )
+    poste = models.ForeignKey(
+        Poste,
+        verbose_name="poste",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="photos_avant",
+    )
+    action = models.ForeignKey(
+        Action,
+        verbose_name="action",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="photos_apres",
+    )
+    date = models.DateTimeField("ajoutée le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "photo"
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.get_type_display()} — {self.poste or self.action}"
+
+    def clean(self):
+        """« Avant » documente un poste, « après » une action : pas de
+        photo flottante, pas de rattachement croisé. Les vues créent
+        déjà les photos bien rattachées ; ce garde-fou couvre l'admin."""
+        from django.core.exceptions import ValidationError
+
+        if self.type == self.Type.AVANT:
+            if self.poste is None:
+                raise ValidationError(
+                    "Une photo « avant » se rattache à un poste."
+                )
+            if self.action is not None:
+                raise ValidationError(
+                    "Une photo « avant » documente un poste, pas une action."
+                )
+        elif self.type == self.Type.APRES:
+            if self.action is None:
+                raise ValidationError(
+                    "Une photo « après » se rattache à une action."
+                )
+            if self.poste is not None:
+                raise ValidationError(
+                    "Une photo « après » documente une action, pas un poste."
+                )
+
+    def delete(self, *args, **kwargs):
+        """Règle 1 : une photo témoigne, elle ne disparaît pas."""
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied(
+            "Une photo ne se supprime pas : elle témoigne du chemin "
+            "parcouru (règle 1)."
         )

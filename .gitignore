@@ -13,3 +13,6 @@ db.sqlite3
 # Éditeurs / OS
 *.save
 .DS_Store
+
+# Médias locaux (dev) : photos compressées dans data/
+data/

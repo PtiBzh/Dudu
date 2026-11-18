@@ -119,6 +119,14 @@ STORAGES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Photos (M5) ---------------------------------------------------------------
+# Les photos compressées vivent sous /data en production (volume
+# persistant : base + photos + plans d'un seul tenant pour les
+# sauvegardes). En dev, le dossier data/ du projet suffit.
+
+MEDIA_URL = "/medias/"
+MEDIA_ROOT = Path(os.environ.get("DUDU_DATA", str(BASE_DIR / "data")))
+
 # Carte (M3) ---------------------------------------------------------------
 # Centre et zoom initiaux de la carte et des mini-cartes de saisie.
 # Réglage d'affichage du club : remplacer par les coordonnées réelles du

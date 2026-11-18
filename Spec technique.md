@@ -44,8 +44,8 @@ erDiagram
   origine du signalement (constat / presqu'accident / accident),
   archivé booléen, journal d'édition (qui, quand) pour la traçabilité
   animateur
-- **Photo** : type (avant / après), fichier, auteur, date ; rattachée
-  à un poste ou à une action
+- **Photo** : type (avant / après), fichier, auteur, date ; l'« avant »
+  se rattache au poste constaté, l'« après » à l'action accomplie
 - **Action** : poste (FK), intitulé, description, responsable
   (obligatoire), échéance (obligatoire), statut
   (à faire / en cours / faite / abandonnée), motif si abandonnée,

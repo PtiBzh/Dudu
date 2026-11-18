@@ -12,6 +12,7 @@ from .models import (
     ChangementSatisfaction,
     EditionPoste,
     Lieu,
+    Photo,
     Poste,
     Revue,
     Utilisateur,
@@ -137,3 +138,15 @@ class ChangementSatisfactionAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(Photo)
+class PhotoAdmin(admin.ModelAdmin):
+    """Consultation ; suppression interdite (règle 1)."""
+
+    list_display = ("type", "poste", "action", "auteur", "date")
+    list_filter = ("type",)
+    search_fields = ("poste__nom", "action__intitule")
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # une photo témoigne, elle ne disparaît pas

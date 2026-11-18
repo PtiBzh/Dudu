@@ -1,4 +1,5 @@
-"""Vues de Dudu — M1 : postes · M2 : actions · M3 : carte · M4 : revues.
+"""Vues de Dudu — M1 : postes · M2 : actions · M3 : carte · M4 : revues ·
+M5 : photos avant/après.
 
 Rappels de spec : la création d'un poste est libre (équipe identifiée),
 l'édition est réservée à l'auteur et à l'animateur (tracée), la
@@ -9,6 +10,7 @@ collégiale. Depuis M3, la carte partage les filtres de la liste des
 postes et la position y est obligatoire.
 """
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
@@ -16,9 +18,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from .fichiers import compresser_photo
 from .forms import (
     ActionCreationForm,
     ActionModificationForm,
+    PhotoForm,
     PosteForm,
     RevueForm,
 )
@@ -26,6 +30,7 @@ from .models import (
     Action,
     ChangementSatisfaction,
     Lieu,
+    Photo,
     Poste,
     Revue,
     Utilisateur,
@@ -196,6 +201,17 @@ def poste_detail(request, pk):
         ),
         pk=pk,
     )
+    photos_avant = poste.photos_avant.all()
+    paires = [
+        {
+            "action": action,
+            "photo_avant": photos_avant[0] if photos_avant else None,
+            "photo_apres": action.photos_apres.first(),
+        }
+        for action in poste.actions.filter(
+            statut=Action.Statut.FAITE, photos_apres__isnull=False
+        ).distinct().order_by("-date_cloture", "-date_creation")
+    ]
     return render(
         request,
         "core/poste_detail.html",
@@ -203,6 +219,8 @@ def poste_detail(request, pk):
             "section": "postes",
             "poste": poste,
             "modifiable": poste.peut_etre_modifie_par(request.user),
+            "photos_avant": photos_avant,
+            "paires": paires,
         },
     )
 
@@ -388,6 +406,17 @@ def action_modifier(request, pk):
     form = ActionModificationForm(request.POST or None, instance=action)
     if request.method == "POST" and form.is_valid():
         form.save()
+        # Règle 5 des écrans (spec technique) : clôturer sans photo
+        # « après » se signale, sans jamais bloquer.
+        if (
+            action.statut == Action.Statut.FAITE
+            and not action.photos_apres.exists()
+        ):
+            messages.warning(
+                request,
+                "Action clôturée sans photo « après » : ajoute-la, "
+                "elle témoigne du travail accompli.",
+            )
         return redirect("action_detail", pk=action.pk)
     return render(
         request,
@@ -402,6 +431,53 @@ def action_modifier(request, pk):
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
+
+
+@login_required
+def poste_photo_ajouter(request, poste_pk):
+    """Photo « avant » : documenter la situation constatée. Création
+    libre, à l'image des postes (règle 4) ; compression à l'upload."""
+    poste = get_object_or_404(Poste, pk=poste_pk)
+    if request.method == "POST":
+        formulaire = PhotoForm(request.POST, request.FILES)
+        if formulaire.is_valid():
+            photo = formulaire.save(commit=False)
+            photo.type = Photo.Type.AVANT
+            photo.poste = poste
+            photo.auteur = request.user
+            photo.fichier = compresser_photo(request.FILES["fichier"])
+            photo.save()
+        else:
+            messages.error(
+                request, "Fichier manquant ou pas une image exploitable."
+            )
+    return redirect("poste_detail", pk=poste.pk)
+
+
+@login_required
+def action_photo_ajouter(request, action_pk):
+    """Photo « après » : témoigner du travail accompli. Réservée au
+    responsable ou à l'animateur, comme l'édition de l'action."""
+    action = get_object_or_404(Action, pk=action_pk)
+    if not action.peut_etre_modifiee_par(request.user):
+        raise PermissionDenied(
+            "Seul le responsable ou l'animateur ajoute la photo "
+            "« après » d'une action."
+        )
+    if request.method == "POST":
+        formulaire = PhotoForm(request.POST, request.FILES)
+        if formulaire.is_valid():
+            photo = formulaire.save(commit=False)
+            photo.type = Photo.Type.APRES
+            photo.action = action
+            photo.auteur = request.user
+            photo.fichier = compresser_photo(request.FILES["fichier"])
+            photo.save()
+        else:
+            messages.error(
+                request, "Fichier manquant ou pas une image exploitable."
+            )
+    return redirect("action_detail", pk=action.pk)
 
 
 @login_required
@@ -464,6 +540,25 @@ def revue_detail(request, pk):
         ),
         pk=pk,
     )
+    # Actions clôturées depuis la revue précédente (écran 5) : c'est
+    # ici que l'avant/après témoigne du chemin parcouru.
+    precedente = Revue.objects.filter(date__lt=revue.date).order_by(
+        "-date", "-date_creation"
+    ).first()
+    cloturees = Action.objects.filter(statut=Action.Statut.FAITE).order_by(
+        "-date_cloture", "-date_creation"
+    )
+    if precedente:
+        cloturees = cloturees.filter(date_cloture__gte=precedente.date)
+    cloturees = cloturees.select_related("poste")
+    paires_cloturees = [
+        {
+            "action": action,
+            "photo_avant": action.poste.photos_avant.first(),
+            "photo_apres": action.photos_apres.first(),
+        }
+        for action in cloturees
+    ]
     context = {
         "section": "revues",
         "revue": revue,
@@ -476,6 +571,7 @@ def revue_detail(request, pk):
             "poste", "ancienne", "nouvelle"
         ),
         "actions": revue.actions.select_related("poste", "responsable"),
+        "paires_cloturees": paires_cloturees,
     }
     return render(request, "core/revue_detail.html", context)
 

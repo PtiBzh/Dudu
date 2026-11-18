@@ -98,6 +98,26 @@
   </ul>
   {% endif %}
 
+  {% if paires_cloturees %}
+  <h2>Actions clôturées depuis la revue précédente</h2>
+  {% for paire in paires_cloturees %}
+  <p class="apercu">« {{ paire.action.intitule }} » — <a href="{% url 'action_detail' paire.action.pk %}">fiche</a>,
+  clôturée le {{ paire.action.date_cloture|date:"j F Y" }}</p>
+  <div class="cote-a-cote">
+    {% if paire.photo_avant %}
+    <img class="photo" src="{{ paire.photo_avant.fichier.url }}" alt="Avant — {{ paire.action.poste.nom }}">
+    {% else %}
+    <p class="apercu">Pas de photo « avant ».</p>
+    {% endif %}
+    {% if paire.photo_apres %}
+    <img class="photo" src="{{ paire.photo_apres.fichier.url }}" alt="Après — {{ paire.action.intitule }}">
+    {% else %}
+    <p class="apercu">Photo « après » à venir.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+
   <h2>Compte rendu</h2>
   {% if revue.compte_rendu %}
   <p>{{ revue.compte_rendu|linebreaks }}</p>

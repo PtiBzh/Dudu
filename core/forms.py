@@ -1,5 +1,5 @@
 """Formulaires de Dudu — M1 : postes · M2 : actions · M3 : carte ·
-M4 : revues.
+M4 : revues · M5 : photos.
 
 Le champ satisfaction est absent du formulaire de poste (règle 3 :
 seule une revue collégiale l'assigne — un ChangementSatisfaction est
@@ -14,7 +14,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .models import Action, Poste, Revue, Utilisateur
+from .models import Action, Photo, Poste, Revue, Utilisateur
 
 
 class PosteForm(forms.ModelForm):
@@ -162,3 +162,16 @@ class RevueForm(forms.ModelForm):
             Utilisateur.objects.filter(is_active=True)
         )
         self.fields["date"].initial = timezone.localdate
+
+
+class PhotoForm(forms.ModelForm):
+    """Téléversement d'une photo (avant ou après) : seul le fichier
+    se choisit ici — le type et le rattachement viennent de la vue,
+    jamais de la requête."""
+
+    class Meta:
+        model = Photo
+        fields = ["fichier"]
+        widgets = {
+            "fichier": forms.FileInput(attrs={"accept": "image/*"}),
+        }

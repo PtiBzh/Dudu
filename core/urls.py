@@ -1,4 +1,5 @@
-"""Routage de l'application core (postes, actions, carte, revues)."""
+"""Routage de l'application core (postes, actions, carte, revues,
+photos)."""
 from django.urls import path
 
 from . import views
@@ -33,4 +34,14 @@ urlpatterns = [
     ),
     path("actions/<int:pk>/", views.action_detail, name="action_detail"),
     path("actions/<int:pk>/modifier/", views.action_modifier, name="action_modifier"),
+    path(
+        "postes/<int:poste_pk>/photos/",
+        views.poste_photo_ajouter,
+        name="poste_photo_ajouter",
+    ),
+    path(
+        "actions/<int:pk>/photos/",
+        views.action_photo_ajouter,
+        name="action_photo_ajouter",
+    ),
 ]
