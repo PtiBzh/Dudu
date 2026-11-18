@@ -43,19 +43,18 @@ L'application : http://127.0.0.1:8000 · Admin : http://127.0.0.1:8000/admin/
 python manage.py test
 ```
 
-Chaque push déclenche la CI (GitHub Actions) : génération des migrations
+Chaque push déclenche la CI (GitHub Actions) : générations des migrations
 manquantes, migration, tests. Les migrations manquantes sont committées
 automatiquement par la CI (validées par les tests), on ne les écrit jamais
-à la main. En cas d'échec, la CI commite un « Diagnostic CI.txt » avec le
-détail complet de l'erreur.
+à la main. Elle télécharge et committe aussi les bibliothèques vendored
+(MapLibre GL JS, empreintes vérifiées). En cas d'échec, elle commite un
+« Diagnostic CI.txt » avec le détail complet de l'erreur.
 
-## État : M2 (actions)
+## État : M3 (carte)
 
 - [x] M0 : socle — projet Django, comptes identifiés + rôle animateur, login, admin, interface de base, CI
 - [x] M1 : postes — création libre, fiche, liste filtrable (lieu, satisfaction, gravité, recherche), cotation santé/sécurité, édition tracée, archivage (aucune suppression)
-- [x] Actions : responsable et échéance obligatoires (règle 2), plusieurs actions possibles par poste
-- [x] Création hors revue réservée à l'animateur (règle 5), inscrite d'office à la prochaine revue (les revues arrivent en M4)
-- [x] Statuts à faire / en cours / faite / abandonnée, abandon avec motif obligatoire
-- [x] Liste des actions : filtres statut, responsable, retards en évidence ; compteurs au tableau de bord
-- [ ] M3 : carte · M4 : revues · M5 : photos
+- [x] M2 : actions — responsable et échéance obligatoires (règle 2), statuts dont abandon avec motif, création hors revue réservée à l'animateur (règle 5), retards en évidence
+- [x] M3 : carte — fond orthophoto IGN (MapLibre GL JS), mêmes filtres que la liste, positionnement du poste d'un clic sur la mini-carte (obligatoire), marqueurs couleur gravité + halo satisfaction, actions ouvertes en pastilles, lien fiche ↔ carte
+- [ ] M4 : revues · M5 : photos
 - [ ] M6 : plans de bâtiments · M7 : conteneur, sauvegarde, déploiement
