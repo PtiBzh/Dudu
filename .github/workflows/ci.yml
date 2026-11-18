@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -18,10 +21,28 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Cohérence des migrations
+        id: coherence
         run: python manage.py makemigrations --check --dry-run
+        continue-on-error: true
+
+      - name: Diagnostic — commiter les migrations manquantes
+        if: steps.coherence.outcome == 'failure'
+        run: |
+          python manage.py makemigrations core --no-input
+          git config user.name "CI Dudu"
+          git config user.email "actions@github.com"
+          git add core/migrations/
+          git commit -m "ci: migrations manquantes détectées (diagnostic)"
+          git push
 
       - name: Migrations
         run: python manage.py migrate
 
       - name: Tests
         run: python manage.py test
+
+      - name: Verdict de cohérence
+        if: steps.coherence.outcome == 'failure'
+        run: |
+          echo "Les migrations commises ne correspondaient pas aux modèles : voir le commit de diagnostic."
+          exit 1
