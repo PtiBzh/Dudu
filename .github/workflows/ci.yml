@@ -23,34 +23,28 @@ jobs:
           python --version
           python -c "import django; print('Django', django.get_version())"
 
-      - name: Diagnostic complet
+      - name: Cohérence des migrations
+        id: coherence
+        run: python manage.py makemigrations --check --dry-run
+        continue-on-error: true
+
+      - name: Migrations
+        run: python manage.py migrate
+
+      - name: Tests
+        run: python manage.py test
+
+      - name: Diagnostic — commiter les migrations manquantes
+        if: steps.coherence.outcome == 'failure'
         run: |
           set +e
           exec > "Diagnostic CI.txt" 2>&1
-          echo "=== makemigrations --check --dry-run ==="
-          python manage.py makemigrations --check --dry-run --verbosity 3
+          python manage.py makemigrations core --no-input --verbosity 3
           echo "exit=$?"
-          echo
-          echo "=== makemigrations core --verbosity 3 ==="
-          python manage.py makemigrations core --verbosity 3
-          echo "exit=$?"
-          echo
-          echo "=== migrate ==="
-          python manage.py migrate
-          echo "exit=$?"
-          echo
-          echo "=== test ==="
-          python manage.py test
-          echo "exit=$?"
-          echo
-          echo "=== état du dossier migrations ==="
           ls -la core/migrations/
-
-      - name: Publier le diagnostic
-        if: always()
-        run: |
           git config user.name "CI Dudu"
           git config user.email "actions@github.com"
           git add "Diagnostic CI.txt" core/migrations/
-          git commit -m "ci: diagnostic complet (temporaire)" || echo "rien à commiter"
+          git commit -m "ci: incohérence des migrations — diagnostic (temporaire)"
           git push || echo "rien à pousser"
+          exit 1
