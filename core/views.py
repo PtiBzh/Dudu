@@ -12,12 +12,14 @@ se dessinent et se calent côté admin : équipe de secrétariat (staff).
 """
 import json
 from functools import wraps
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -645,6 +647,23 @@ def revue_satisfaction(request, pk, poste_pk):
             poste.save(update_fields=["satisfaction"])
     retour = reverse("revue_detail", args=[revue.pk])
     return redirect(f"{retour}#poste-{poste.pk}")
+
+
+@login_required
+def medias(request, chemin):
+    """Sert les médias du volume /data — identifiés, jamais publics
+    (spéc « aucune exposition publique », M7). Gunicorn + WhiteNoise
+    prend en charge les statiques ; les médias (photos, plans) eux
+    restent derrière une session. Garde-fou d'évasion de chemin."""
+    racine = Path(settings.MEDIA_ROOT).resolve()
+    cible = (racine / chemin).resolve()
+    try:
+        cible.relative_to(racine)
+    except ValueError:
+        raise Http404("Média introuvable.")
+    if not cible.is_file():
+        raise Http404("Média introuvable.")
+    return FileResponse(cible.open("rb"))
 
 
 def centre_de_coins(coins):
