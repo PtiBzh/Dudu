@@ -549,7 +549,7 @@ def revue_detail(request, pk):
         "-date_cloture", "-date_creation"
     )
     if precedente:
-        cloturees = cloturees.filter(date_cloture__gte=precedente.date)
+        cloturees = cloturees.filter(date_cloture__date__gte=precedente.date)
     cloturees = cloturees.select_related("poste")
     paires_cloturees = [
         {

@@ -251,8 +251,11 @@ class RevueAvantApresTests(PhotoFixture):
         self.revue = Revue.objects.create(date=self.hier)
         self.revue.postes.set([self.poste])
         self.ajouter_photo_avant()
+        # .update() ne passe pas par save() : la date de clôture se
+        # pose ici comme le ferait un vrai passage en « faite ».
         Action.objects.filter(pk=self.action.pk).update(
-            statut=Action.Statut.FAITE
+            statut=Action.Statut.FAITE,
+            date_cloture=timezone.now() - timedelta(days=1),
         )
         self.ajouter_photo_apres()
 
