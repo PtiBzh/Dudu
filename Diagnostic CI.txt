@@ -269,7 +269,7 @@ Traceback (most recent call last):
 TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
 
 ----------------------------------------------------------------------
-Ran 107 tests in 42.283s
+Ran 107 tests in 41.841s
 
 FAILED (errors=8)
 Destroying test database for alias 'default'...
