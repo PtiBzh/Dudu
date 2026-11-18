@@ -1,0 +1,27 @@
+Creating test database for alias 'default'...
+E/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+  mw_instance = middleware(adapted_handler)
+.....................
+======================================================================
+ERROR: core.test_actions (unittest.loader._FailedTest.core.test_actions)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: core.test_actions
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 19, in <module>
+    class ActionFixture(TestCase):
+                        ^^^^^^^^
+NameError: name 'TestCase' is not defined
+
+
+----------------------------------------------------------------------
+Ran 22 tests in 5.804s
+
+FAILED (errors=1)
+Destroying test database for alias 'default'...
+Found 22 test(s).
+System check identified no issues (0 silenced).
