@@ -14,5 +14,8 @@ db.sqlite3
 *.save
 .DS_Store
 
+# Secret du déploiement club (M7) — jamais versionné
+.env
+
 # Médias locaux (dev) : photos compressées dans data/
 data/
