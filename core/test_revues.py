@@ -104,7 +104,8 @@ class RevueAccesTests(RevueFixture):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Postes examinés")
         self.assertContains(response, "Manutention remorque planches")
-        self.assertContains(response, "Lea")
+        self.assertContains(response, "Participants")
+        self.assertContains(response, "lea")
         self.assertContains(response, "Point complet de")
 
     def test_modification(self):
