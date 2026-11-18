@@ -1,0 +1,277 @@
+Creating test database for alias 'default'...
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+  mw_instance = middleware(adapted_handler)
+..........................................E......EEE....EE.EE..............................................
+======================================================================
+ERROR: test_cloturee_avec_photo_pas_avertissement (core.test_photos.AvertissementTests.test_cloturee_avec_photo_pas_avertissement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 203, in test_cloturee_avec_photo_pas_avertissement
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_animatrice_ajoute (core.test_photos.PhotoApresTests.test_animatrice_ajoute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 150, in test_animatrice_ajoute
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_responsable_ajoute (core.test_photos.PhotoApresTests.test_responsable_ajoute)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 141, in test_responsable_ajoute
+    reponse = self.ajouter_photo_apres()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_tiers_refuse (core.test_photos.PhotoApresTests.test_tiers_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 136, in test_tiers_refuse
+    reponse = self.ajouter_photo_apres()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_cloturee_avant_la_revue_precedente_absente (core.test_photos.RevueAvantApresTests.test_cloturee_avant_la_revue_precedente_absente)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 257, in setUp
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_cloturee_recemment_visible (core.test_photos.RevueAvantApresTests.test_cloturee_recemment_visible)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 257, in setUp
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_sur_l_action (core.test_photos.VueAvantApresTests.test_sur_l_action)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 228, in test_sur_l_action
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+======================================================================
+ERROR: test_sur_le_poste (core.test_photos.VueAvantApresTests.test_sur_le_poste)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 220, in test_sur_le_poste
+    self.ajouter_photo_apres()
+  File "/home/runner/work/Dudu/Dudu/core/test_photos.py", line 72, in ajouter_photo_apres
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: action_photo_ajouter() got an unexpected keyword argument 'pk'
+
+----------------------------------------------------------------------
+Ran 107 tests in 42.283s
+
+FAILED (errors=8)
+Destroying test database for alias 'default'...
+Found 107 test(s).
+System check identified no issues (0 silenced).
