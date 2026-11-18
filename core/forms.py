@@ -1,5 +1,5 @@
 """Formulaires de Dudu — M1 : postes · M2 : actions · M3 : carte ·
-M4 : revues · M5 : photos.
+M4 : revues · M5 : photos · M6 : plans de bâtiments.
 
 Le champ satisfaction est absent du formulaire de poste (règle 3 :
 seule une revue collégiale l'assigne — un ChangementSatisfaction est
@@ -14,7 +14,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .models import Action, Photo, Poste, Revue, Utilisateur
+from .models import Action, Photo, PlanBatiment, Poste, Revue, Utilisateur
 
 
 class PosteForm(forms.ModelForm):
@@ -175,3 +175,46 @@ class PhotoForm(forms.ModelForm):
         widgets = {
             "fichier": forms.FileInput(attrs={"accept": "image/*"}),
         }
+
+
+class PlanForm(forms.ModelForm):
+    """Création/édition d'un plan de bâtiment. Le dessin (Terra Draw)
+    et le calage (4 coins) se font dans les éditeurs dédiés, pas
+    ici."""
+
+    class Meta:
+        model = PlanBatiment
+        fields = [
+            "nom",
+            "etiquette",
+            "nature",
+            "couleur",
+            "ordre",
+            "opacite",
+            "fichier",
+        ]
+        widgets = {
+            "etiquette": forms.TextInput(
+                attrs={"placeholder": "Ex. Hangar — étage"}
+            ),
+            "couleur": forms.TextInput(attrs={"type": "color"}),
+            "ordre": forms.NumberInput(attrs={"min": 0}),
+            "opacite": forms.NumberInput(
+                attrs={"min": "0.1", "max": "1", "step": "0.05"}
+            ),
+            "fichier": forms.FileInput(attrs={"accept": "image/*"}),
+        }
+
+    def clean(self):
+        """Nature « image » : le fichier est requis, dès la création
+        comme au remplacement (le calage suivra)."""
+        donnees = super().clean()
+        if donnees.get("nature") == PlanBatiment.Nature.IMAGE:
+            fichier = donnees.get("fichier") or self.instance.fichier
+            if not fichier:
+                self.add_error(
+                    "fichier",
+                    "Importe une image (PNG/JPG) : elle se calera sur "
+                    "l'orthophoto par ses 4 coins.",
+                )
+        return donnees

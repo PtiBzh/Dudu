@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titre %}Calage — {{ plan }}{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <div class="entete-liste">
+    <h1>Calage de « {{ plan }} »</h1>
+    <a class="lien-retour" href="{% url 'plans' %}">Retour aux plans</a>
+  </div>
+  <p class="apercu">Déplace l'image à la souris, tire ses 4 poignées
+  de coin sur les repères du terrain, règle l'échelle et l'opacité,
+  puis enregistre : le plan apparaîtra sur la carte à sa place.</p>
+  {% if not plan.fichier %}
+  <ul class="erreur"><li>Importe d'abord une image (PNG/JPG) depuis
+  « Modifier ».</li></ul>
+  {% endif %}
+  <div id="carte" class="boite-carte"></div>
+  <div class="barre-outils">
+    <button id="agrandir" class="bouton discret" type="button">Agrandir</button>
+    <button id="reduire" class="bouton discret" type="button">Réduire</button>
+    <label class="ligne">Opacité
+      <input id="reglette-opacite" type="range" min="0.1" max="1" step="0.05"
+             value="{{ plan.opacite }}">
+    </label>
+  </div>
+  <form method="post" action="{% url 'plan_calage' plan.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="coins" id="id_coins" value="">
+    <input type="hidden" name="opacite" id="id_opacite" value="{{ plan.opacite }}">
+    <button class="bouton" type="submit">Enregistrer le calage</button>
+  </form>
+</section>
+{{ donnees_calage|json_script:"donnees-calage" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/fond-carte.js' %}"></script>
+<script src="{% static 'js/plan-calage.js' %}"></script>
+{% endblock %}

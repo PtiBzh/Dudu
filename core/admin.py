@@ -13,6 +13,7 @@ from .models import (
     EditionPoste,
     Lieu,
     Photo,
+    PlanBatiment,
     Poste,
     Revue,
     Utilisateur,
@@ -150,3 +151,27 @@ class PhotoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False  # une photo témoigne, elle ne disparaît pas
+
+
+@admin.register(PlanBatiment)
+class PlanBatimentAdmin(admin.ModelAdmin):
+    """Consultation des plans (écran 6) ; le dessin (Terra Draw) et le
+    calage (4 coins) se font dans les éditeurs de l'app, pas ici."""
+
+    list_display = (
+        "nom",
+        "etiquette",
+        "nature",
+        "ordre",
+        "opacite",
+        "auteur",
+        "date",
+    )
+    list_filter = ("nature",)
+    search_fields = ("nom", "etiquette")
+
+    def has_add_permission(self, request):
+        return False  # un plan naît dans l'app, avec ses éditeurs
+
+    def has_delete_permission(self, request, obj=None):
+        return False

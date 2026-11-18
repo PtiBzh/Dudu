@@ -1,5 +1,5 @@
 """Routage de l'application core (postes, actions, carte, revues,
-photos)."""
+photos, plans)."""
 from django.urls import path
 
 from . import views
@@ -43,5 +43,19 @@ urlpatterns = [
         "actions/<int:pk>/photos/",
         views.action_photo_ajouter,
         name="action_photo_ajouter",
+    ),
+    path("plans/", views.plans, name="plans"),
+    path("plans/nouveau/", views.plan_nouveau, name="plan_nouveau"),
+    path(
+        "plans/<int:pk>/modifier/",
+        views.plan_modifier,
+        name="plan_modifier",
+    ),
+    path("plans/<int:pk>/dessin/", views.plan_dessin, name="plan_dessin"),
+    path("plans/<int:pk>/calage/", views.plan_calage, name="plan_calage"),
+    path(
+        "plans/<int:pk>/supprimer/",
+        views.plan_supprimer,
+        name="plan_supprimer",
     ),
 ]

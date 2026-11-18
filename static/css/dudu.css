@@ -305,3 +305,29 @@ tr.en-retard td { background: #fbeae9; }
   margin: 0.5rem 0 1rem;
   align-items: start;
 }
+
+/* Plans de bâtiments (M6) ---------------------------------------------------- */
+
+.barre-outils {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0.5rem 0;
+}
+
+.poignee {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--bord-clair, #fff);
+  border-radius: 50%;
+  background: #3b7dd8;
+  cursor: grab;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.poignee:active { cursor: grabbing; }
+
+#reglette-opacite { vertical-align: middle; }
+
+.table .badge { white-space: nowrap; }

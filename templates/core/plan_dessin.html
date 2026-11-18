@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titre %}Dessin — {{ plan }}{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <div class="entete-liste">
+    <h1>Dessin de « {{ plan }} »</h1>
+    <a class="lien-retour" href="{% url 'plans' %}">Retour aux plans</a>
+  </div>
+  <p class="apercu">Clique sur « Tracer » puis sur chaque sommet du
+  bâtiment ; revisite le premier point pour fermer le polygone. La
+  forme enregistrée s'affiche en relecture : un nouveau tracé
+  l'écrasera à l'enregistrement.</p>
+  <div id="carte" class="boite-carte"></div>
+  <div class="barre-outils">
+    <button id="tracer" class="bouton" type="button">Tracer le polygone</button>
+    <button id="effacer" class="bouton discret" type="button">Effacer le tracé</button>
+  </div>
+  <form method="post" action="{% url 'plan_dessin' plan.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="forme" id="id_forme" value="">
+    <button class="bouton" type="submit">Enregistrer la forme</button>
+  </form>
+</section>
+{{ donnees_dessin|json_script:"donnees-dessin" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/fond-carte.js' %}"></script>
+<script src="{% static 'vendor/terra-draw.umd.js' %}"></script>
+<script src="{% static 'vendor/terra-draw-maplibre-gl-adapter.umd.js' %}"></script>
+<script src="{% static 'js/plan-dessin.js' %}"></script>
+{% endblock %}

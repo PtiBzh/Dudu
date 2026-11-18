@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titre %}Plans de bâtiments{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <div class="entete-liste">
+    <h1>Plans de bâtiments</h1>
+    <a class="bouton" href="{% url 'plan_nouveau' %}">Nouveau plan</a>
+  </div>
+  <p class="apercu">Formes dessinées ou images calées sur l'orthophoto :
+  les plans apparaissent sur la carte sous les marqueurs. Les étages se
+  dessinent côte à côte (« chez le voisin »), jamais empilés —
+  l'étiquette distingue les niveaux.</p>
+
+  {% if plans %}
+  <table class="table">
+    <thead>
+      <tr><th>Plan</th><th>Nature</th><th>État</th><th>Ordre</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for plan in plans %}
+      <tr>
+        <td>{{ plan }}</td>
+        <td>{{ plan.get_nature_display }}</td>
+        <td>
+          {% if plan.est_complet %}
+            {% if plan.nature == "forme" %}dessiné{% else %}calé{% endif %}
+          {% else %}
+            <span class="badge">
+              {% if plan.nature == "forme" %}à dessiner{% else %}à caler{% endif %}
+            </span>
+          {% endif %}
+        </td>
+        <td>{{ plan.ordre }}</td>
+        <td class="ligne">
+          <a class="lien-retour" href="{% url 'plan_modifier' plan.pk %}">Modifier</a>
+          {% if plan.nature == "forme" %}
+          <a class="lien-retour" href="{% url 'plan_dessin' plan.pk %}">Dessiner</a>
+          {% else %}
+          <a class="lien-retour" href="{% url 'plan_calage' plan.pk %}">Caler</a>
+          {% endif %}
+          <form class="ligne" method="post"
+                action="{% url 'plan_supprimer' plan.pk %}">
+            {% csrf_token %}
+            <button class="lien" type="submit">Supprimer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="apercu">Aucun plan pour l'instant. Commence par le hangar :
+  « forme dessinée » si tu traces son empreinte, « image importée » si
+  tu disposes d'un plan papier numérisé.</p>
+  {% endif %}
+</section>
+{% endblock %}

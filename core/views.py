@@ -1,5 +1,5 @@
 """Vues de Dudu — M1 : postes · M2 : actions · M3 : carte · M4 : revues ·
-M5 : photos avant/après.
+M5 : photos avant/après · M6 : plans de bâtiments.
 
 Rappels de spec : la création d'un poste est libre (équipe identifiée),
 l'édition est réservée à l'auteur et à l'animateur (tracée), la
@@ -7,8 +7,12 @@ satisfaction ne se change qu'en revue (M4). Une action exige
 responsable et échéance (règle 2) ; hors revue, sa création est
 réservée à l'animateur (règle 5), au sein d'une revue elle est
 collégiale. Depuis M3, la carte partage les filtres de la liste des
-postes et la position y est obligatoire.
+postes et la position y est obligatoire. Les plans de bâtiments (M6)
+se dessinent et se calent côté admin : équipe de secrétariat (staff).
 """
+import json
+from functools import wraps
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -23,6 +27,7 @@ from .forms import (
     ActionCreationForm,
     ActionModificationForm,
     PhotoForm,
+    PlanForm,
     PosteForm,
     RevueForm,
 )
@@ -31,6 +36,7 @@ from .models import (
     ChangementSatisfaction,
     Lieu,
     Photo,
+    PlanBatiment,
     Poste,
     Revue,
     Utilisateur,
@@ -39,6 +45,22 @@ from .models import (
 )
 
 STATUTS_OUVERTS = [Action.Statut.A_FAIRE, Action.Statut.EN_COURS]
+
+
+def staff_seulement(vue):
+    """Écran 6 : les plans de bâtiments se dessinent et se calent côté
+    admin — réservé à l'équipe de secrétariat (staff)."""
+
+    @wraps(vue)
+    def interne(request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied(
+                "Les plans de bâtiments se gèrent côté admin "
+                "(équipe de secrétariat)."
+            )
+        return vue(request, *args, **kwargs)
+
+    return interne
 
 
 @login_required
@@ -136,6 +158,7 @@ def carte(request):
             }
             for action in actions_visibles
         ],
+        "plans": [plan.donnees_carte() for plan in PlanBatiment.objects.all()],
     }
     context = {
         "section": "carte",
@@ -622,3 +645,230 @@ def revue_satisfaction(request, pk, poste_pk):
             poste.save(update_fields=["satisfaction"])
     retour = reverse("revue_detail", args=[revue.pk])
     return redirect(f"{retour}#poste-{poste.pk}")
+
+
+def centre_de_coins(coins):
+    """Centre d'un jeu de 4 coins [lng, lat] — pour cadrer l'éditeur
+    de calage sur l'image."""
+    if not coins:
+        return settings.DUDU_CENTRE_CARTE
+    lats = [coin[1] for coin in coins]
+    lngs = [coin[0] for coin in coins]
+    return (sum(lats) / len(lats), sum(lngs) / len(lngs))
+
+
+@login_required
+@staff_seulement
+def plans(request):
+    """Écran 6 : les plans de bâtiments du club, dessinés ou calés."""
+    liste = PlanBatiment.objects.select_related("auteur").all()
+    return render(
+        request,
+        "core/plan_liste.html",
+        {"section": "plans", "plans": liste},
+    )
+
+
+@login_required
+@staff_seulement
+def plan_nouveau(request):
+    """Création d'un plan. La nature oriente vers l'éditeur adéquat :
+    dessin (Terra Draw) ou calage d'image."""
+    if request.method == "POST":
+        formulaire = PlanForm(request.POST, request.FILES)
+        if formulaire.is_valid():
+            plan = formulaire.save(commit=False)
+            plan.auteur = request.user
+            plan.save()
+            messages.success(request, "Plan enregistré.")
+            if plan.nature == PlanBatiment.Nature.IMAGE:
+                return redirect("plan_calage", pk=plan.pk)
+            return redirect("plan_dessin", pk=plan.pk)
+        messages.error(
+            request, "Le plan n'est pas enregistré : vérifie le formulaire."
+        )
+    else:
+        formulaire = PlanForm()
+    return render(
+        request,
+        "core/plan_form.html",
+        {"section": "plans", "titre": "Nouveau plan", "formulaire": formulaire},
+    )
+
+
+@login_required
+@staff_seulement
+def plan_modifier(request, pk):
+    """Édition des attributs d'un plan (nom, couleur, ordre…)."""
+    plan = get_object_or_404(PlanBatiment, pk=pk)
+    if request.method == "POST":
+        formulaire = PlanForm(request.POST, request.FILES, instance=plan)
+        if formulaire.is_valid():
+            formulaire.save()
+            messages.success(request, "Plan modifié.")
+            return redirect("plans")
+        messages.error(
+            request, "Le plan n'est pas enregistré : vérifie le formulaire."
+        )
+    else:
+        formulaire = PlanForm(instance=plan)
+    return render(
+        request,
+        "core/plan_form.html",
+        {
+            "section": "plans",
+            "titre": f"Modifier « {plan} »",
+            "formulaire": formulaire,
+            "plan": plan,
+        },
+    )
+
+
+@login_required
+@staff_seulement
+def plan_supprimer(request, pk):
+    """Suppression d'un plan (et de son fichier) : un plan de
+    bâtiment est du contexte de travail, pas une trace d'amélioration
+    — effacer un import erroné reste légitime (POST uniquement)."""
+    plan = get_object_or_404(PlanBatiment, pk=pk)
+    if request.method == "POST":
+        if plan.fichier:
+            plan.fichier.delete(save=False)
+        plan.delete()
+        messages.success(request, f"Plan « {plan} » supprimé.")
+    return redirect("plans")
+
+
+def forme_valide(forme):
+    """Un polygone GeoJSON lisible, avec au moins un anneau fermé."""
+    return (
+        isinstance(forme, dict)
+        and forme.get("type") == "Polygon"
+        and isinstance(forme.get("coordinates"), list)
+        and len(forme["coordinates"]) > 0
+    )
+
+
+@login_required
+@staff_seulement
+def plan_dessin(request, pk):
+    """Éditeur de dessin (Terra Draw) : trace le polygone du plan sur
+    l'orthophoto. La forme sauvegardée s'affiche en relecture, le
+    nouveau tracé l'écrase à l'enregistrement."""
+    plan = get_object_or_404(PlanBatiment, pk=pk)
+    if plan.nature != PlanBatiment.Nature.FORME:
+        raise PermissionDenied(
+            "Seul un plan « forme dessinée » se trace à la souris ; "
+            "un plan image se cale."
+        )
+    if request.method == "POST":
+        try:
+            forme = json.loads(request.POST.get("forme", ""))
+        except (json.JSONDecodeError, TypeError):
+            forme = None
+        if forme_valide(forme):
+            plan.forme = forme
+            plan.save(update_fields=["forme"])
+            messages.success(
+                request,
+                "Forme enregistrée : le plan apparaît sur la carte.",
+            )
+            return redirect("plans")
+        messages.error(
+            request,
+            "Forme illisible : trace le polygone puis enregistre.",
+        )
+    zoom = settings.DUDU_ZOOM_CARTE if not plan.forme else 18
+    donnees_dessin = {
+        "lat": settings.DUDU_CENTRE_CARTE[0],
+        "lng": settings.DUDU_CENTRE_CARTE[1],
+        "zoom": zoom,
+        "couleur": plan.couleur,
+        "forme": plan.forme,
+    }
+    if plan.forme:
+        latitude, longitude = centre_de_coins(plan.forme["coordinates"][0])
+        donnees_dessin["lat"] = latitude
+        donnees_dessin["lng"] = longitude
+    return render(
+        request,
+        "core/plan_dessin.html",
+        {
+            "section": "plans",
+            "plan": plan,
+            "donnees_dessin": donnees_dessin,
+        },
+    )
+
+
+@login_required
+@staff_seulement
+def plan_calage(request, pk):
+    """Éditeur de calage maison : l'image se déplace à la souris, ses
+    4 poignées de coin se tirent sur les repères du terrain, l'échelle
+    et l'opacité se règlent (spec technique, ~150 lignes de JS)."""
+    plan = get_object_or_404(PlanBatiment, pk=pk)
+    if plan.nature != PlanBatiment.Nature.IMAGE:
+        raise PermissionDenied(
+            "Seul un plan image se cale ; un plan forme se trace à "
+            "la souris."
+        )
+    if request.method == "POST":
+        try:
+            coins = json.loads(request.POST.get("coins", ""))
+        except (json.JSONDecodeError, TypeError):
+            coins = None
+        try:
+            opacite = float(request.POST.get("opacite", plan.opacite))
+        except ValueError:
+            opacite = plan.opacite
+        coins_valides = (
+            isinstance(coins, list)
+            and len(coins) == 4
+            and all(
+                isinstance(coin, list)
+                and len(coin) == 2
+                and all(isinstance(v, (int, float)) for v in coin)
+                for coin in coins
+            )
+            and 0.1 <= opacite <= 1
+        )
+        if coins_valides:
+            plan.coins = coins
+            plan.opacite = opacite
+            plan.save(update_fields=["coins", "opacite"])
+            messages.success(
+                request,
+                "Calage enregistré : le plan apparaît sur la carte.",
+            )
+            return redirect("plans")
+        messages.error(
+            request, "Calage illisible : 4 coins sur la carte, puis "
+            "enregistre."
+        )
+    lat, lng = settings.DUDU_CENTRE_CARTE
+    coins = plan.coins or [
+        [lng - 0.0004, lat + 0.0003],
+        [lng + 0.0004, lat + 0.0003],
+        [lng + 0.0004, lat - 0.0003],
+        [lng - 0.0004, lat - 0.0003],
+    ]
+    latitude, longitude = centre_de_coins(coins)
+    donnees_calage = {
+        "lat": latitude,
+        "lng": longitude,
+        "zoom": settings.DUDU_ZOOM_CARTE,
+        "url": plan.fichier.url if plan.fichier else None,
+        "coins": coins,
+        "opacite": plan.opacite,
+        "couleur": plan.couleur,
+    }
+    return render(
+        request,
+        "core/plan_calage.html",
+        {
+            "section": "plans",
+            "plan": plan,
+            "donnees_calage": donnees_calage,
+        },
+    )

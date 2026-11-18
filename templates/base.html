@@ -16,6 +16,9 @@
     <a href="{% url 'actions' %}" {% if section == "actions" %}aria-current="page"{% endif %}>Actions</a>
     <a href="{% url 'revues' %}" {% if section == "revues" %}aria-current="page"{% endif %}>Revues</a>
     <a href="{% url 'carte' %}" {% if section == "carte" %}aria-current="page"{% endif %}>Carte</a>
+    {% if user.is_staff %}
+      <a href="{% url 'plans' %}" {% if section == "plans" %}aria-current="page"{% endif %}>Plans</a>
+    {% endif %}
     <span class="espace"></span>
     {% if user.is_authenticated %}
       <span class="qui">{{ user.get_full_name|default:user.username }}</span>

@@ -6,6 +6,8 @@ M2 : actions d'amélioration (responsable et échéance obligatoires).
 M3 : couleurs des valeurs de cotation pour les marqueurs carte.
 M4 : revues collégiales — journal historique des décisions.
 M5 : photos avant/après, compressées à l'upload, datant la clôture.
+M6 : plans de bâtiments — formes dessinées (Terra Draw) ou images
+calées (4 coins WGS84), affichés sous les marqueurs.
 
 Règles de gestion (Spec Dudu.md) :
 1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé ;
@@ -18,6 +20,12 @@ Règles de gestion (Spec Dudu.md) :
 """
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.core.validators import (
+    MaxValueValidator,
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db import models
 
 
@@ -523,3 +531,153 @@ class Photo(models.Model):
             "Une photo ne se supprime pas : elle témoigne du chemin "
             "parcouru (règle 1)."
         )
+
+
+def dossier_plans(instance, filename):
+    """Spec technique : les plans calés vivent dans /data/plans/
+    (MEDIA_ROOT se règle par DUDU_DATA en production)."""
+    return f"plans/{filename}"
+
+
+class PlanBatiment(models.Model):
+    """Plan d'un bâtiment (M6), affiché sous les marqueurs de la carte.
+
+    Deux natures, au choix (spec technique) : une forme polygone
+    dessinée à la souris (Terra Draw, page de dessin), ou une image
+    importée (PNG/JPG) calée par ses 4 coins en WGS84, déplacée à la
+    souris par poignées de coin. Les étages se dessinent côte à côte
+    (« chez le voisin »), jamais empilés : l'étiquette distingue les
+    niveaux.
+    """
+
+    class Nature(models.TextChoices):
+        FORME = "forme", "Forme dessinée"
+        IMAGE = "image", "Image importée calée"
+
+    nom = models.CharField("nom", max_length=200)
+    etiquette = models.CharField(
+        "étiquette",
+        max_length=200,
+        blank=True,
+        help_text="Ex. « Hangar — étage » : distingue les niveaux, "
+        "dessinés côte à côte, jamais empilés.",
+    )
+    nature = models.CharField(
+        "nature",
+        max_length=10,
+        choices=Nature.choices,
+        default=Nature.FORME,
+    )
+    forme = models.JSONField(
+        "forme (polygone GeoJSON)",
+        null=True,
+        blank=True,
+        help_text="Polygone tracé à la souris dans l'éditeur (Terra Draw).",
+    )
+    fichier = models.ImageField(
+        "image (PNG/JPG)",
+        null=True,
+        blank=True,
+        upload_to=dossier_plans,
+        help_text="Plan numérisé, calé sur l'orthophoto par ses 4 coins.",
+    )
+    coins = models.JSONField(
+        "coins de calage [lng, lat]",
+        null=True,
+        blank=True,
+        help_text="Les 4 coins de l'image en WGS84, posés par "
+        "l'éditeur de calage.",
+    )
+    opacite = models.FloatField(
+        "opacité",
+        default=0.5,
+        validators=[MinValueValidator(0.1), MaxValueValidator(1.0)],
+        help_text="Défaut 50 % (spec technique).",
+    )
+    couleur = models.CharField(
+        "couleur",
+        max_length=7,
+        default="#3b7dd8",
+        validators=[
+            RegexValidator(r"^#[0-9a-fA-F]{6}$", "Couleur au format #rrggbb.")
+        ],
+    )
+    ordre = models.PositiveSmallIntegerField(
+        "ordre d'affichage",
+        default=0,
+        help_text="Les plans se rangent au-dessus de l'orthophoto, "
+        "sous les marqueurs.",
+    )
+    auteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="auteur",
+        on_delete=models.PROTECT,
+        related_name="plans_ajoutes",
+    )
+    date = models.DateTimeField("ajouté le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "plan de bâtiment"
+        verbose_name_plural = "plans de bâtiments"
+        ordering = ["ordre", "nom"]
+
+    def __str__(self):
+        if self.etiquette:
+            return f"{self.nom} — {self.etiquette}"
+        return self.nom
+
+    def donnees_carte(self):
+        """Sérialisation pour la carte et les éditeurs (json_script)."""
+        return {
+            "id": self.pk,
+            "nom": self.nom,
+            "etiquette": self.etiquette,
+            "nature": self.nature,
+            "couleur": self.couleur,
+            "opacite": self.opacite,
+            "ordre": self.ordre,
+            "forme": self.forme,
+            "coins": self.coins,
+            "url": self.fichier.url if self.fichier else None,
+        }
+
+    def est_complet(self):
+        """La forme est tracée, l'image est calée : le plan apparaît
+        sur la carte (sinon il reste « à dessiner » / « à caler »)."""
+        if self.nature == self.Nature.FORME:
+            return self.forme is not None
+        return bool(self.fichier and self.coins)
+
+    def clean(self):
+        """Garde-fous : une forme dessinée ne se cale pas ; une image
+        calée ne porte pas de forme. Les coins se valident dès qu'ils
+        existent — leur absence est un état (« à caler »), pas une
+        faute : le calage suit la création."""
+        if self.nature == self.Nature.FORME:
+            if self.fichier or self.coins:
+                raise ValidationError(
+                    "Une forme dessinée ne se cale pas : ni image, "
+                    "ni coins de calage."
+                )
+        elif self.nature == self.Nature.IMAGE:
+            if self.forme:
+                raise ValidationError(
+                    "Un plan image ne porte pas de forme dessinée : "
+                    "il se cale par ses 4 coins."
+                )
+            coins = self.coins
+            coins_valides = (
+                isinstance(coins, list)
+                and len(coins) == 4
+                and all(
+                    isinstance(coin, list)
+                    and len(coin) == 2
+                    and all(isinstance(v, (int, float)) for v in coin)
+                    for coin in coins
+                )
+            )
+            if coins is not None and not coins_valides:
+                raise ValidationError(
+                    "Une image se cale par exactement 4 coins "
+                    "[longitude, latitude] — jamais 3, jamais 5."
+                )

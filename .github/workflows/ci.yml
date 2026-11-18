@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Bibliothèques vendored (MapLibre GL JS)
+      - name: Bibliothèques vendored (MapLibre GL JS, Terra Draw)
         run: |
           mkdir -p static/vendor
           cd static/vendor
@@ -23,9 +23,17 @@ jobs:
           if [ ! -f maplibre-gl.css ]; then
             curl -fsSL -o maplibre-gl.css "https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css"
           fi
+          if [ ! -f terra-draw.umd.js ]; then
+            curl -fsSL -o terra-draw.umd.js "https://unpkg.com/terra-draw@1.9.1/dist/terra-draw.umd.js"
+          fi
+          if [ ! -f terra-draw-maplibre-gl-adapter.umd.js ]; then
+            curl -fsSL -o terra-draw-maplibre-gl-adapter.umd.js "https://unpkg.com/terra-draw-maplibre-gl-adapter@1.5.0/dist/terra-draw-maplibre-gl-adapter.umd.js"
+          fi
           sha256sum -c <<'SOMMES'
           a9c9e2aa36d4d5b63b131f27c1272f1a28883eeecc0eddd1e0dbfae4033bc7c9  maplibre-gl.js
           ab1e70d59ec40465bae7e7030da2f3ccf28133fd502e62bd598eefbadfd7a732  maplibre-gl.css
+          741f227cb5d4f40e1176aee2cdd6db85e0f0c342e8935c8530c4e4e7d6029c6b  terra-draw.umd.js
+          ca325fd1d8e55fdf357df668184ae677d729eec5c8514f24c2ea1efbe45dce34  terra-draw-maplibre-gl-adapter.umd.js
           SOMMES
 
       - uses: actions/setup-python@v5
