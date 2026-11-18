@@ -591,6 +591,7 @@ class PlanBatiment(models.Model):
     opacite = models.FloatField(
         "opacité",
         default=0.5,
+        blank=True,
         validators=[MinValueValidator(0.1), MaxValueValidator(1.0)],
         help_text="Défaut 50 % (spec technique).",
     )
@@ -598,6 +599,7 @@ class PlanBatiment(models.Model):
         "couleur",
         max_length=7,
         default="#3b7dd8",
+        blank=True,
         validators=[
             RegexValidator(r"^#[0-9a-fA-F]{6}$", "Couleur au format #rrggbb.")
         ],
@@ -605,6 +607,7 @@ class PlanBatiment(models.Model):
     ordre = models.PositiveSmallIntegerField(
         "ordre d'affichage",
         default=0,
+        blank=True,
         help_text="Les plans se rangent au-dessus de l'orthophoto, "
         "sous les marqueurs.",
     )
