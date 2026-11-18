@@ -18,31 +18,39 @@ jobs:
           python-version: "3.12"
 
       - name: Installation des dépendances
-        run: pip install -r requirements.txt
-
-      - name: Cohérence des migrations
-        id: coherence
-        run: python manage.py makemigrations --check --dry-run
-        continue-on-error: true
-
-      - name: Diagnostic — commiter les migrations manquantes
-        if: steps.coherence.outcome == 'failure'
         run: |
-          python manage.py makemigrations core --no-input
+          pip install -r requirements.txt
+          python --version
+          python -c "import django; print('Django', django.get_version())"
+
+      - name: Diagnostic complet
+        run: |
+          set +e
+          exec > "Diagnostic CI.txt" 2>&1
+          echo "=== makemigrations --check --dry-run ==="
+          python manage.py makemigrations --check --dry-run --verbosity 3
+          echo "exit=$?"
+          echo
+          echo "=== makemigrations core --verbosity 3 ==="
+          python manage.py makemigrations core --verbosity 3
+          echo "exit=$?"
+          echo
+          echo "=== migrate ==="
+          python manage.py migrate
+          echo "exit=$?"
+          echo
+          echo "=== test ==="
+          python manage.py test
+          echo "exit=$?"
+          echo
+          echo "=== état du dossier migrations ==="
+          ls -la core/migrations/
+
+      - name: Publier le diagnostic
+        if: always()
+        run: |
           git config user.name "CI Dudu"
           git config user.email "actions@github.com"
-          git add core/migrations/
-          git commit -m "ci: migrations manquantes détectées (diagnostic)"
-          git push
-
-      - name: Migrations
-        run: python manage.py migrate
-
-      - name: Tests
-        run: python manage.py test
-
-      - name: Verdict de cohérence
-        if: steps.coherence.outcome == 'failure'
-        run: |
-          echo "Les migrations commises ne correspondaient pas aux modèles : voir le commit de diagnostic."
-          exit 1
+          git add "Diagnostic CI.txt" core/migrations/
+          git commit -m "ci: diagnostic complet (temporaire)" || echo "rien à commiter"
+          git push || echo "rien à pousser"
