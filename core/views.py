@@ -455,10 +455,10 @@ def poste_photo_ajouter(request, poste_pk):
 
 
 @login_required
-def action_photo_ajouter(request, action_pk):
+def action_photo_ajouter(request, pk):
     """Photo « après » : témoigner du travail accompli. Réservée au
     responsable ou à l'animateur, comme l'édition de l'action."""
-    action = get_object_or_404(Action, pk=action_pk)
+    action = get_object_or_404(Action, pk=pk)
     if not action.peut_etre_modifiee_par(request.user):
         raise PermissionDenied(
             "Seul le responsable ou l'animateur ajoute la photo "
