@@ -4,9 +4,6 @@ on:
   push:
   pull_request:
 
-permissions:
-  contents: write
-
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -22,32 +19,11 @@ jobs:
           pip install -r requirements.txt
           python -c "import django; print('Django', django.get_version())"
 
-      - name: Vérification complète (cohérence, migrations, tests)
-        run: |
-          set +e
-          exec > "Diagnostic CI.txt" 2>&1
-          ok=1
-          echo "=== cohérence des migrations ==="
-          python manage.py makemigrations --check --dry-run --verbosity 3
-          if [ $? -ne 0 ]; then
-            ok=0
-            echo "--- incohérence : génération du delta ---"
-            python manage.py makemigrations core --no-input --verbosity 3
-          fi
-          echo "=== migrate ==="
-          python manage.py migrate || ok=0
-          echo "=== test ==="
-          python manage.py test || ok=0
-          echo "=== migrations présentes ==="
-          ls core/migrations/
-          echo "=== ok=$ok ==="
-          if [ "$ok" = "1" ]; then
-            rm "Diagnostic CI.txt"
-          else
-            git config user.name "CI Dudu"
-            git config user.email "actions@github.com"
-            git add "Diagnostic CI.txt" core/migrations/
-            git commit -m "ci: échec — diagnostic complet (temporaire)"
-            git push || echo "rien à pousser"
-          fi
-          exit $ok
+      - name: Cohérence des migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Migrations
+        run: python manage.py migrate
+
+      - name: Tests
+        run: python manage.py test
