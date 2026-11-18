@@ -49,12 +49,13 @@ automatiquement par la CI (validées par les tests), on ne les écrit jamais
 à la main. En cas d'échec, la CI commite un « Diagnostic CI.txt » avec le
 détail complet de l'erreur.
 
-## État : M1 (postes)
+## État : M2 (actions)
 
 - [x] M0 : socle — projet Django, comptes identifiés + rôle animateur, login, admin, interface de base, CI
-- [x] Postes de travail : création libre, fiche, liste filtrable (lieu, satisfaction, gravité, recherche)
-- [x] Cotation santé/sécurité (gravité, fréquence, origine du signalement)
-- [x] Édition réservée à l'auteur ou à un animateur, chaque changement tracé
-- [x] Archivage au lieu de la suppression (aucune donnée ne disparaît)
-- [ ] M2 : actions · M3 : carte · M4 : revues · M5 : photos
+- [x] M1 : postes — création libre, fiche, liste filtrable (lieu, satisfaction, gravité, recherche), cotation santé/sécurité, édition tracée, archivage (aucune suppression)
+- [x] Actions : responsable et échéance obligatoires (règle 2), plusieurs actions possibles par poste
+- [x] Création hors revue réservée à l'animateur (règle 5), inscrite d'office à la prochaine revue (les revues arrivent en M4)
+- [x] Statuts à faire / en cours / faite / abandonnée, abandon avec motif obligatoire
+- [x] Liste des actions : filtres statut, responsable, retards en évidence ; compteurs au tableau de bord
+- [ ] M3 : carte · M4 : revues · M5 : photos
 - [ ] M6 : plans de bâtiments · M7 : conteneur, sauvegarde, déploiement
