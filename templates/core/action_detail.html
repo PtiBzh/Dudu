@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block titre %}{{ action.intitule }}{% endblock %}
+{% block contenu %}
+<section>
+  <h1>{{ action.intitule }}
+    <span class="chip statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+    {% if action.en_retard %}<span class="chip retard-chip">en retard</span>{% endif %}
+  </h1>
+  <p class="apercu">
+    Pour le poste <a href="{% url 'poste_detail' action.poste.pk %}">{{ action.poste.nom }}</a>
+  </p>
+  <p><span class="chip hors-revue" title="Les revues arrivent au jalon M4">hors revue — à inscrire à la prochaine revue</span></p>
+
+  {% if action.description %}
+  <p>{{ action.description|linebreaks }}</p>
+  {% endif %}
+
+  <dl class="fiche">
+    <dt>Responsable</dt>
+    <dd>{{ action.responsable.get_full_name|default:action.responsable.username }}</dd>
+    <dt>Échéance</dt>
+    <dd>{{ action.echeance|date:"j F Y" }}</dd>
+    <dt>Créée le</dt>
+    <dd>{{ action.date_creation|date:"j F Y" }}</dd>
+    {% if action.motif_abandon %}
+    <dt>Motif d'abandon</dt>
+    <dd>{{ action.motif_abandon|linebreaks }}</dd>
+    {% endif %}
+    {% if action.latitude and action.longitude %}
+    <dt>Position</dt>
+    <dd>{{ action.latitude|floatformat:5 }}, {{ action.longitude|floatformat:5 }}</dd>
+    {% endif %}
+  </dl>
+
+  <div class="actions">
+    {% if modifiable %}
+      <a class="bouton" href="{% url 'action_modifier' action.pk %}">Modifier</a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

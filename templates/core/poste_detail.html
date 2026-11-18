@@ -44,6 +44,22 @@
   </p>
   {% endif %}
 
+  <h2>Actions</h2>
+  {% if poste.actions.all %}
+  <ul class="liste-actions">
+    {% for action in poste.actions.all %}
+    <li>
+      <a href="{% url 'action_detail' action.pk %}">{{ action.intitule }}</a>
+      <span class="chip statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+      {% if action.en_retard %}<span class="chip retard-chip">en retard</span>{% endif %}
+      <span class="apercu">échéance {{ action.echeance|date:"j F Y" }} · pour {{ action.responsable.get_full_name|default:action.responsable.username }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="apercu">Aucune action encore décidée pour ce poste.</p>
+  {% endif %}
+
   <div class="actions">
     {% if modifiable %}
       <a class="bouton" href="{% url 'poste_modifier' poste.pk %}">Modifier</a>
@@ -55,6 +71,9 @@
         <button class="bouton discret" type="submit">Archiver</button>
         {% endif %}
       </form>
+    {% endif %}
+    {% if user.is_animateur %}
+      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}">Nouvelle action</a>
     {% endif %}
   </div>
 </section>

@@ -12,7 +12,7 @@
     <a class="marque" href="{% url 'home' %}">Dudu</a>
     <a href="{% url 'home' %}" {% if section == "accueil" %}aria-current="page"{% endif %}>Accueil</a>
     <a href="{% url 'postes' %}" {% if section == "postes" %}aria-current="page"{% endif %}>Postes</a>
-    <span class="avenir" title="Jalon M2">Actions</span>
+    <a href="{% url 'actions' %}" {% if section == "actions" %}aria-current="page"{% endif %}>Actions</a>
     <span class="avenir" title="Jalon M4">Revues</span>
     <span class="avenir" title="Jalon M3">Carte</span>
     <span class="espace"></span>

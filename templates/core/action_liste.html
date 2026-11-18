@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titre %}Actions{% endblock %}
+{% block contenu %}
+<section>
+  <div class="entete-liste">
+    <h1>Actions</h1>
+  </div>
+
+  <form class="filtres" method="get" action="{% url 'actions' %}">
+    <input type="text" name="q" placeholder="Rechercher…"
+           value="{{ q_visuel|default:'' }}">
+    <select name="statut">
+      <option value="ouvertes" {% if statut_selection == "ouvertes" %}selected{% endif %}>Ouvertes (à faire, en cours)</option>
+      {% for valeur, libelle in statuts %}
+        <option value="{{ valeur }}" {% if statut_selection == valeur %}selected{% endif %}>{{ libelle }}</option>
+      {% endfor %}
+      <option value="toutes" {% if statut_selection == "toutes" %}selected{% endif %}>Toutes</option>
+    </select>
+    <select name="responsable">
+      <option value="">Responsable : toute l'équipe</option>
+      {% for m in equipe %}
+        <option value="{{ m.id }}" {% if responsable_selection == m.id|stringformat:"s" %}selected{% endif %}>{{ m.get_full_name|default:m.username }}</option>
+      {% endfor %}
+    </select>
+    <label class="retard-case">
+      <input type="checkbox" name="retard" value="1" {% if retard_selection %}checked{% endif %}>
+      en retard seulement
+    </label>
+    <button type="submit">Filtrer</button>
+  </form>
+
+  {% if actions %}
+  <table class="table">
+    <thead>
+      <tr><th>Action</th><th>Poste</th><th>Responsable</th><th>Échéance</th><th>Statut</th></tr>
+    </thead>
+    <tbody>
+      {% for action in actions %}
+      <tr {% if action.en_retard %}class="en-retard"{% endif %}>
+        <td>
+          <a href="{% url 'action_detail' action.pk %}">{{ action.intitule }}</a>
+          {% if action.en_retard %}<span class="chip retard-chip">en retard</span>{% endif %}
+        </td>
+        <td><a href="{% url 'poste_detail' action.poste.pk %}">{{ action.poste.nom }}</a></td>
+        <td>{{ action.responsable.get_full_name|default:action.responsable.username }}</td>
+        <td>{{ action.echeance|date:"j F Y" }}</td>
+        <td><span class="chip statut-{{ action.statut }}">{{ action.get_statut_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="apercu">Aucune action ne correspond. Les actions se décident en revue ;
+  en urgence, l'animateur peut en créer une depuis la fiche d'un poste.</p>
+  {% endif %}
+</section>
+{% endblock %}

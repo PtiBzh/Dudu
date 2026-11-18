@@ -2,11 +2,16 @@
 
 M0 : comptes identifiés + rôle animateur.
 M1 : postes de travail, cotation santé/sécurité, traçabilité des éditions.
+M2 : actions d'amélioration (responsable et échéance obligatoires).
 
 Règles de gestion (Spec Dudu.md) :
-1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé.
+1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé ;
+   une action abandonnée reste visible avec son motif.
+2. Une action sans responsable ni échéance ne peut pas être créée.
 3. Le statut de satisfaction n'est modifié qu'en revue collégiale.
 4. Création libre ; édition par l'animateur tracée « modifiée par X le Y ».
+5. Un risque grave ne patiente pas : action urgente hors revue, par
+   l'animateur.
 """
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -215,3 +220,82 @@ class EditionPoste(models.Model):
 
     def __str__(self):
         return f"{self.poste} modifié par {self.qui}"
+
+
+class Action(models.Model):
+    """Action d'amélioration décidée pour un poste.
+
+    Créée en revue collégiale (M4) ou en urgence hors revue par
+    l'animateur si le risque est grave (règle 5) : elle est alors inscrite
+    d'office à la prochaine revue. Un poste peut porter plusieurs actions
+    suivies en parallèle.
+    """
+
+    class Statut(models.TextChoices):
+        """Statut de réalisation."""
+        A_FAIRE = "a_faire", "À faire"
+        EN_COURS = "en_cours", "En cours"
+        FAITE = "faite", "Faite"
+        ABANDONNEE = "abandonnee", "Abandonnée"
+
+    poste = models.ForeignKey(
+        Poste,
+        verbose_name="poste",
+        on_delete=models.PROTECT,
+        related_name="actions",
+    )
+    intitule = models.CharField("intitulé", max_length=150)
+    description = models.TextField("description de travail", blank=True)
+    responsable = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name="responsable",
+        on_delete=models.PROTECT,
+        related_name="actions_portees",
+    )
+    echeance = models.DateField("échéance")
+    statut = models.CharField(
+        "statut de réalisation",
+        max_length=20,
+        choices=Statut.choices,
+        default=Statut.A_FAIRE,
+    )
+    motif_abandon = models.TextField("motif d'abandon", blank=True)
+    date_creation = models.DateTimeField("créée le", auto_now_add=True)
+
+    # Position héritée du poste à la création, modifiable ensuite.
+    latitude = models.FloatField("latitude", null=True, blank=True)
+    longitude = models.FloatField("longitude", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "action"
+        ordering = ["echeance", "date_creation"]
+
+    def __str__(self):
+        return self.intitule
+
+    @property
+    def est_ouverte(self):
+        return self.statut in (self.Statut.A_FAIRE, self.Statut.EN_COURS)
+
+    @property
+    def en_retard(self):
+        """Ouverte (à faire ou en cours) dont l'échéance est passée.
+        Une action faite ou abandonnée n'est jamais « en retard »."""
+        from django.utils import timezone
+
+        return self.est_ouverte and self.echeance < timezone.localdate()
+
+    def peut_etre_modifiee_par(self, utilisateur):
+        """Le responsable de l'action ou l'animateur."""
+        return utilisateur.is_animateur or utilisateur.pk == self.responsable_id
+
+    def delete(self, *args, **kwargs):
+        """Règle 1 : une action ne se supprime pas. Abandonnée, elle
+        reste visible avec son motif ; faite, elle témoigne du chemin
+        parcouru."""
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied(
+            "Une action ne se supprime pas : abandonnée, elle reste "
+            "visible avec son motif (règle 1)."
+        )

@@ -166,6 +166,42 @@ textarea { width: 100%; }
 .chip.origine-presqu_accident { background: #f6c667; }
 .chip.origine-accident { background: #e2a29b; }
 
+/* Statuts d'action */
+.chip.statut-a_faire { background: #e8eaed; }
+.chip.statut-en_cours { background: #c5dfe8; color: #0d4a56; }
+.chip.statut-faite { background: #c6ddb6; color: #2e5c1e; }
+.chip.statut-abandonnee { background: #d9d4cc; color: #615c53; }
+
+.chip.retard-chip { background: #b3261e; color: var(--clair); }
+
+tr.en-retard td { background: #fbeae9; }
+
+.chip.hors-revue { background: #efe6d8; color: #7a5c1e; }
+
+/* Actions d'un poste (fiche) */
+.liste-actions {
+  list-style: none;
+  padding: 0.4rem 0 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.liste-actions li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.retard-case {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--gris);
+}
+
+.compteurs strong.retard { color: #b3261e; }
+
 /* Fiche détail */
 .fiche {
   display: grid;

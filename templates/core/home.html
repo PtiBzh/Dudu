@@ -7,12 +7,14 @@
   <ul class="compteurs">
     <li><strong>{{ postes_actifs }}</strong> postes actifs</li>
     <li><strong>{{ cotation_attention }}</strong> cotés santé / sécurité</li>
+    <li><strong>{{ actions_ouvertes }}</strong> actions ouvertes</li>
+    <li><strong class="{{ actions_en_retard|yesno:'retard,' }}">{{ actions_en_retard }}</strong> actions en retard</li>
     <li><strong>{{ postes_archives }}</strong> archivés</li>
   </ul>
   <p>
     <a class="bouton" href="{% url 'postes' %}">Voir les postes</a>
-    <a class="bouton discret" href="{% url 'poste_creer' %}" style="margin-left:0.75rem">Nouveau poste</a>
+    <a class="bouton discret" href="{% url 'actions' %}" style="margin-left:0.75rem">Voir les actions</a>
   </p>
-  <p class="apercu">Actions (M2), revue (M4) et carte (M3) arrivent aux jalons suivants.</p>
+  <p class="apercu">Revue (M4) et carte (M3) arrivent aux jalons suivants.</p>
 </section>
 {% endblock %}

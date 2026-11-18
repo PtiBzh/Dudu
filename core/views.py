@@ -1,28 +1,45 @@
-"""Vues de Dudu — M1 : accueil, postes.
+"""Vues de Dudu — M1 : postes · M2 : actions.
 
 Rappels de spec : la création d'un poste est libre (équipe identifiée),
 l'édition est réservée à l'auteur et à l'animateur (tracée), la
-satisfaction ne se change qu'en revue (M4) — le formulaire ne la propose
-donc pas.
+satisfaction ne se change qu'en revue (M4). Une action exige
+responsable et échéance (règle 2) ; hors revue, sa création est
+réservée à l'animateur (règle 5).
 """
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
-from .forms import PosteForm
-from .models import Lieu, Poste, ValeurGravite, ValeurSatisfaction
+from .forms import ActionCreationForm, ActionModificationForm, PosteForm
+from .models import (
+    Action,
+    Lieu,
+    Poste,
+    Utilisateur,
+    ValeurGravite,
+    ValeurSatisfaction,
+)
+
+STATUTS_OUVERTS = [Action.Statut.A_FAIRE, Action.Statut.EN_COURS]
 
 
 @login_required
 def home(request):
-    """Tableau de bord : compteurs des postes (M1)."""
+    """Tableau de bord : compteurs des postes et des actions."""
     context = {
         "section": "accueil",
         "postes_actifs": Poste.objects.filter(archive=False).count(),
         "postes_archives": Poste.objects.filter(archive=True).count(),
         "cotation_attention": Poste.objects.filter(
             archive=False, gravite__isnull=False
+        ).count(),
+        "actions_ouvertes": Action.objects.filter(
+            statut__in=STATUTS_OUVERTS
+        ).count(),
+        "actions_en_retard": Action.objects.filter(
+            statut__in=STATUTS_OUVERTS, echeance__lt=timezone.localdate()
         ).count(),
     }
     return render(request, "core/home.html", context)
@@ -136,3 +153,127 @@ def poste_archiver(request, pk):
         poste.archive = not poste.archive
         poste.save()
     return redirect("poste_detail", pk=poste.pk)
+
+
+@login_required
+def actions(request):
+    """Liste des actions : par responsable, par statut, retards en
+    évidence (écran 4 de la spec technique)."""
+    liste = Action.objects.select_related(
+        "poste", "responsable"
+    ).order_by("echeance", "date_creation")
+
+    statut = request.GET.get("statut", "ouvertes")
+    if statut == "ouvertes":
+        liste = liste.filter(statut__in=STATUTS_OUVERTS)
+    elif statut in Action.Statut.values:
+        liste = liste.filter(statut=statut)
+
+    responsable = request.GET.get("responsable", "")
+    if responsable:
+        liste = liste.filter(responsable_id=responsable)
+
+    retard = request.GET.get("retard", "")
+    if retard:
+        liste = liste.filter(
+            statut__in=STATUTS_OUVERTS, echeance__lt=timezone.localdate()
+        )
+
+    recherche = request.GET.get("q", "").strip()
+    if recherche:
+        liste = liste.filter(
+            Q(intitule__icontains=recherche)
+            | Q(description__icontains=recherche)
+        )
+
+    context = {
+        "section": "actions",
+        "actions": liste,
+        "statuts": Action.Statut.choices,
+        "equipe": Utilisateur.objects.filter(is_active=True),
+        "statut_selection": statut,
+        "responsable_selection": responsable,
+        "retard_selection": bool(retard),
+        "q_visuel": recherche,
+    }
+    return render(request, "core/action_liste.html", context)
+
+
+@login_required
+def action_detail(request, pk):
+    action = get_object_or_404(
+        Action.objects.select_related("poste", "responsable", "poste__lieu"),
+        pk=pk,
+    )
+    return render(
+        request,
+        "core/action_detail.html",
+        {
+            "section": "actions",
+            "action": action,
+            "modifiable": action.peut_etre_modifiee_par(request.user),
+        },
+    )
+
+
+@login_required
+def action_creer(request, poste_pk):
+    """Règle 5 : hors revue (les revues arrivent en M4), seule
+    l'animatrice ou l'animateur crée une action urgente. L'action est
+    alors inscrite d'office à la prochaine revue."""
+    poste = get_object_or_404(Poste, pk=poste_pk)
+    if not request.user.is_animateur:
+        raise PermissionDenied(
+            "Jusqu'aux revues (M4), seule l'animatrice ou l'animateur "
+            "peut créer une action (règle 5)."
+        )
+    form = ActionCreationForm(
+        request.POST or None,
+        initial={"latitude": poste.latitude, "longitude": poste.longitude},
+    )
+    if request.method == "POST" and form.is_valid():
+        action = form.save(commit=False)
+        action.poste = poste
+        # Position héritée du poste si aucune autre n'est donnée.
+        if action.latitude is None:
+            action.latitude = poste.latitude
+        if action.longitude is None:
+            action.longitude = poste.longitude
+        action.save()
+        return redirect("action_detail", pk=action.pk)
+    return render(
+        request,
+        "core/action_form.html",
+        {
+            "section": "actions",
+            "form": form,
+            "titre": "Nouvelle action",
+            "poste": poste,
+        },
+    )
+
+
+@login_required
+def action_modifier(request, pk):
+    action = get_object_or_404(
+        Action.objects.select_related("poste"), pk=pk
+    )
+    if not action.peut_etre_modifiee_par(request.user):
+        raise PermissionDenied(
+            "Seul le responsable ou l'animateur peut modifier une action."
+        )
+    form = ActionModificationForm(request.POST or None, instance=action)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("action_detail", pk=action.pk)
+    return render(
+        request,
+        "core/action_form.html",
+        {
+            "section": "actions",
+            "form": form,
+            "titre": "Modifier l'action",
+            "action": action,
+            "poste": action.poste,
+        },
+    )

@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .models import (
+    Action,
     EditionPoste,
     Lieu,
     Poste,
@@ -84,3 +85,16 @@ class EditionPosteAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False  # la trace est la trace
+
+
+@admin.register(Action)
+class ActionAdmin(admin.ModelAdmin):
+    """Consultation et rattrapage ; suppression interdite (règle 1)."""
+
+    list_display = ("intitule", "poste", "responsable", "echeance", "statut")
+    list_filter = ("statut", "responsable")
+    search_fields = ("intitule", "description", "poste__nom")
+    date_hierarchy = "echeance"
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # règle 1 : rien ne disparaît

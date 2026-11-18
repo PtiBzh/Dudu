@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titre %}{{ titre }}{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <h1>{{ titre }}</h1>
+  {% if poste and not action %}
+  <p class="apercu">Une action de plus pour « {{ poste.nom }} ». Responsable et
+  échéance sont obligatoires : une action sans responsable ni échéance ne peut
+  pas être créée (règle 2).</p>
+  {% elif action %}
+  <p class="apercu">« {{ action.intitule }} » pour {{ action.poste.nom }}.
+  L'échéance peut être décalée ; abandonner exige un motif.</p>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+  <ul class="erreur">
+    {% for erreur in form.non_field_errors %}<li>{{ erreur }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% for champ in form.visible_fields %}
+    <p {% if champ.errors %}class="champ-erreur"{% endif %}>
+      <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+      {{ champ }}
+      {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+    </p>
+    {% endfor %}
+    <button type="submit">Enregistrer</button>
+    <a class="lien-retour" href="{% if action %}{% url 'action_detail' action.pk %}{% else %}{% url 'poste_detail' poste.pk %}{% endif %}">Annuler</a>
+  </form>
+</section>
+{% endblock %}
