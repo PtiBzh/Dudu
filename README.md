@@ -1,5 +1,7 @@
 # Dudu
 
+[![CI](https://github.com/PtiBzh/Dudu/actions/workflows/ci.yml/badge.svg)](https://github.com/PtiBzh/Dudu/actions/workflows/ci.yml)
+
 Suivi d'amélioration des conditions de travail — Centre Nautique.
 
 Dudu recense les **postes de travail** de l'équipe, suit leur **niveau de
@@ -25,7 +27,8 @@ exposition publique. Voir la spec technique.
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate        # bash, zsh…
+# sous fish : source .venv/bin/activate.fish
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
@@ -41,8 +44,7 @@ python manage.py test
 ```
 
 Chaque push déclenche la CI (GitHub Actions) : cohérence des migrations,
-migrations, tests. Un badge d'état sera ajouté une fois le premier run
-exécuté.
+migrations, tests.
 
 ## État : M0 (socle)
 
