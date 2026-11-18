@@ -1,0 +1,28 @@
+# Dudu — déploiement club (M7). Renseigne .env (voir .env.example) :
+#   cp .env.example .env
+#   docker compose up -d --build
+# Le conteneur écoute sur le réseau local uniquement ; l'accès distant
+# passe par WireGuard, jamais par un port public.
+services:
+  dudu:
+    build: .
+    image: dudu:local
+    restart: unless-stopped
+    ports:
+      # Où le service écoute SUR LA MACHINE CLUB (adresse locale,
+      # jamais 0.0.0.0 vers Internet : la box ne route pas ce port).
+      - "${DUDU_ECOUTE:-127.0.0.1:8000}:8000"
+    environment:
+      DUDU_SECRET_KEY: "${DUDU_SECRET_KEY:?DUDU_SECRET_KEY manquant : copie .env.example en .env et adapte.}"
+      DUDU_DEBUG: "0"
+      DUDU_ALLOWED_HOSTS: "${DUDU_ALLOWED_HOSTS:-dudu.local}"
+      DUDU_ORIGINES_CSFR: "${DUDU_ORIGINES_CSFR:-}"
+      DUDU_CENTRE_CARTE: "${DUDU_CENTRE_CARTE:-48.42,-4.55}"
+      DUDU_ZOOM_CARTE: "${DUDU_ZOOM_CARTE:-16}"
+      DUDU_CRON: "${DUDU_CRON:-30 3 * * *}"
+      DUDU_RETENTION_JOURS: "${DUDU_RETENTION_JOURS:-90}"
+      BACKUP_DEST: "${BACKUP_DEST:-}"
+      DUDU_TRAVAILLEURS: "${DUDU_TRAVAILLEURS:-3}"
+    volumes:
+      # Volume /data : base + photos + plans + sauvegardes locales.
+      - "${DUDU_VOLUME:-./data}:/data"

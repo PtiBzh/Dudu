@@ -1,0 +1,15 @@
+# Le conteneur n'embarque que le code et les statiques : les données
+# vivent dans le volume /data, le dépôt git reste dehors.
+.git
+.github
+.venv
+venv
+env
+data
+staticfiles
+db.sqlite3
+.env
+__pycache__
+*.py[cod]
+Diagnostic CI.txt
+*.sqlite3
