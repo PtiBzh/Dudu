@@ -10,6 +10,7 @@
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
