@@ -43,15 +43,18 @@ L'application : http://127.0.0.1:8000 · Admin : http://127.0.0.1:8000/admin/
 python manage.py test
 ```
 
-Chaque push déclenche la CI (GitHub Actions) : cohérence des migrations,
-migrations, tests.
+Chaque push déclenche la CI (GitHub Actions) : génération des migrations
+manquantes, migration, tests. Les migrations manquantes sont committées
+automatiquement par la CI (validées par les tests), on ne les écrit jamais
+à la main. En cas d'échec, la CI commite un « Diagnostic CI.txt » avec le
+détail complet de l'erreur.
 
-## État : M0 (socle)
+## État : M1 (postes)
 
-- [x] Projet Django, application unique `core`
-- [x] Comptes identifiés (modèle Utilisateur) + rôle animateur
-- [x] Connexion / déconnexion / admin
-- [x] Squelette d'interface (base, accueil, messages)
-- [x] CI GitHub Actions
-- [ ] M1 : postes · M2 : actions · M3 : carte · M4 : revues · M5 : photos
+- [x] M0 : socle — projet Django, comptes identifiés + rôle animateur, login, admin, interface de base, CI
+- [x] Postes de travail : création libre, fiche, liste filtrable (lieu, satisfaction, gravité, recherche)
+- [x] Cotation santé/sécurité (gravité, fréquence, origine du signalement)
+- [x] Édition réservée à l'auteur ou à un animateur, chaque changement tracé
+- [x] Archivage au lieu de la suppression (aucune donnée ne disparaît)
+- [ ] M2 : actions · M3 : carte · M4 : revues · M5 : photos
 - [ ] M6 : plans de bâtiments · M7 : conteneur, sauvegarde, déploiement
