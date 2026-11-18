@@ -16,6 +16,10 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        # Le modèle Utilisateur porte des M2M vers auth.Group et
+        # auth.Permission : auth.0001 doit donc être appliqué avant
+        # la création de ses tables de liaison.
+        ("auth", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
