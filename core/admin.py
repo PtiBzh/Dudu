@@ -1,8 +1,21 @@
-"""Admin Django : comptes de l'équipe et rôle animateur."""
+"""Admin Django : équipes, rôles, postes et listes de valeurs.
+
+L'admin sert aussi de « rattrapage » (corrections de saisie) ; en
+revanche, la suppression de postes y est désactivée (règle 1 : rien
+ne disparaît).
+"""
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Utilisateur
+from .models import (
+    EditionPoste,
+    Lieu,
+    Poste,
+    Utilisateur,
+    ValeurFrequence,
+    ValeurGravite,
+    ValeurSatisfaction,
+)
 
 
 @admin.register(Utilisateur)
@@ -21,3 +34,53 @@ class UtilisateurAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Rôle Dudu", {"fields": ("is_animateur",)}),
     )
+
+
+@admin.register(Lieu)
+class LieuAdmin(admin.ModelAdmin):
+    list_display = ("nom", "ordre")
+
+
+@admin.register(ValeurSatisfaction)
+class ValeurSatisfactionAdmin(admin.ModelAdmin):
+    list_display = ("libelle", "ordre", "couleur")
+
+
+@admin.register(ValeurGravite)
+class ValeurGraviteAdmin(admin.ModelAdmin):
+    list_display = ("libelle", "ordre")
+
+
+@admin.register(ValeurFrequence)
+class ValeurFrequenceAdmin(admin.ModelAdmin):
+    list_display = ("libelle", "ordre")
+
+
+@admin.register(Poste)
+class PosteAdmin(admin.ModelAdmin):
+    """Consultation et rattrapage ; suppression interdite."""
+
+    list_display = (
+        "nom",
+        "lieu",
+        "auteur",
+        "origine",
+        "gravite",
+        "frequence",
+        "satisfaction",
+        "archive",
+    )
+    list_filter = ("lieu", "origine", "archive", "satisfaction")
+    search_fields = ("nom", "description")
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # règle 1 : rien ne disparaît
+
+
+@admin.register(EditionPoste)
+class EditionPosteAdmin(admin.ModelAdmin):
+    list_display = ("poste", "qui", "quand")
+    search_fields = ("poste__nom", "qui__username")
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # la trace est la trace

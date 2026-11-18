@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block titre %}{{ poste.nom }}{% endblock %}
+{% block contenu %}
+<section>
+  <h1>{{ poste.nom }}
+    {% if poste.archive %}<span class="chip archive">archivé</span>{% endif %}
+  </h1>
+  <p class="apercu">
+    Proposé par {{ poste.auteur.get_full_name|default:poste.auteur.username }}
+    le {{ poste.date_creation|date:"j F Y" }}
+    {% if poste.lieu %}· {{ poste.lieu }}{% endif %}
+  </p>
+
+  {% if poste.description %}
+  <p>{{ poste.description|linebreaks }}</p>
+  {% endif %}
+
+  <h2>Santé / Sécurité</h2>
+  <dl class="fiche">
+    <dt>Gravité potentielle</dt>
+    <dd>{{ poste.gravite|default:"non cotée" }}</dd>
+    <dt>Fréquence d'exposition</dt>
+    <dd>{{ poste.frequence|default:"non cotée" }}</dd>
+    <dt>Origine du signalement</dt>
+    <dd><span class="chip origine-{{ poste.origine }}">{{ poste.get_origine_display }}</span></dd>
+    <dt>Statut de satisfaction</dt>
+    <dd>
+      {% if poste.satisfaction %}
+        <span class="chip" style="background: {{ poste.satisfaction.couleur }}">{{ poste.satisfaction.libelle }}</span>
+      {% else %}à décider en revue{% endif %}
+    </dd>
+    {% if poste.latitude and poste.longitude %}
+    <dt>Position</dt>
+    <dd>{{ poste.latitude|floatformat:5 }}, {{ poste.longitude|floatformat:5 }}</dd>
+    {% endif %}
+  </dl>
+
+  {% if poste.editions.all %}
+  <p class="apercu">
+    Dernière modification par
+    {{ poste.editions.first.qui.get_full_name|default:poste.editions.first.qui.username }}
+    le {{ poste.editions.first.quand|date:"j F Y à G:i" }}
+    ({{ poste.editions.count }} modification{{ poste.editions.count|pluralize }})
+  </p>
+  {% endif %}
+
+  <div class="actions">
+    {% if poste.peut_etre_modifie_par:user %}
+      <a class="bouton" href="{% url 'poste_modifier' poste.pk %}">Modifier</a>
+      <form class="ligne" method="post" action="{% url 'poste_archiver' poste.pk %}">
+        {% csrf_token %}
+        {% if poste.archive %}
+        <button class="bouton discret" type="submit">Désarchiver</button>
+        {% else %}
+        <button class="bouton discret" type="submit">Archiver</button>
+        {% endif %}
+      </form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

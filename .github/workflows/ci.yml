@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: write
+
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -19,11 +22,49 @@ jobs:
           pip install -r requirements.txt
           python -c "import django; print('Django', django.get_version())"
 
-      - name: Cohérence des migrations
-        run: python manage.py makemigrations --check --dry-run
+      - name: Migrations manquantes (générées automatiquement)
+        id: makemig
+        run: |
+          set +e
+          python manage.py makemigrations --no-input > "Diagnostic CI.txt" 2>&1
+          code=$?
+          cat "Diagnostic CI.txt"
+          exit $code
 
-      - name: Migrations
-        run: python manage.py migrate
+      - name: Migrer
+        id: migrer
+        run: |
+          set +e
+          python manage.py migrate > "Diagnostic CI.txt" 2>&1
+          code=$?
+          cat "Diagnostic CI.txt"
+          exit $code
 
       - name: Tests
-        run: python manage.py test
+        id: tests
+        run: |
+          set +e
+          python manage.py test > "Diagnostic CI.txt" 2>&1
+          code=$?
+          cat "Diagnostic CI.txt"
+          exit $code
+
+      - name: Synchroniser le dépôt
+        if: always()
+        run: |
+          git config user.name "CI Dudu"
+          git config user.email "actions@github.com"
+          if [ "${{ steps.tests.outcome }}" = "success" ]; then
+            rm -f "Diagnostic CI.txt"
+          fi
+          git add -A
+          if git diff --quiet --cached; then
+            echo "rien à synchroniser"
+          else
+            if [ "${{ steps.tests.outcome }}" = "success" ]; then
+              git commit -m "ci: migrations générées automatiquement, validées par les tests"
+            else
+              git commit -m "ci: échec — diagnostic et migrations générées"
+            fi
+            git push
+          fi

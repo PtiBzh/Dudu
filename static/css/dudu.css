@@ -1,5 +1,4 @@
-/* Dudu — feuille de style du socle M0.
-   Volontairement minimal : pas de framework, pas de build. */
+/* Dudu — styles M1 : socle + postes. Minimal, sans framework, sans build. */
 
 :root {
   --encre: #1c2733;
@@ -7,6 +6,7 @@
   --accent: #0d6b7c;
   --clair: #ffffff;
   --gris: #6b7684;
+  --bord: #ddd;
 }
 
 * { box-sizing: border-box; }
@@ -24,7 +24,10 @@ main {
   padding: 1.5rem 1rem 3rem;
 }
 
-h1 { font-size: 1.6rem; }
+h1 { font-size: 1.6rem; margin-top: 0.2rem; }
+h2 { font-size: 1.1rem; color: var(--accent); }
+
+a { color: var(--accent); }
 
 /* Barre de navigation */
 .barre {
@@ -33,19 +36,11 @@ h1 { font-size: 1.6rem; }
   gap: 1rem;
   padding: 0.6rem 1rem;
   background: var(--clair);
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid var(--bord);
 }
 
-.barre a {
-  color: var(--encre);
-  text-decoration: none;
-}
-
-.barre a.marque {
-  font-weight: 700;
-  color: var(--accent);
-}
-
+.barre a { color: var(--encre); text-decoration: none; }
+.barre a.marque { font-weight: 700; color: var(--accent); }
 .barre a[aria-current="page"] { font-weight: 600; }
 
 .barre .espace { flex: 1; }
@@ -71,19 +66,135 @@ button.lien {
   font: inherit;
 }
 
-/* Boîtes */
+/* Boîtes et formulaires */
 .boite {
   background: var(--clair);
-  border: 1px solid #ddd;
+  border: 1px solid var(--bord);
   border-radius: 0.5rem;
   padding: 1.5rem;
-  max-width: 24rem;
-  margin: 2rem auto;
+  max-width: 26rem;
+  margin: 1.5rem auto;
 }
 
-.apercu { color: var(--gris); }
+.boite.large { max-width: 34rem; }
 
+.apercu { color: var(--gris); }
 .erreur { color: #b3261e; }
+.champ-erreur label { color: #b3261e; }
+
+input, select, textarea {
+  font: inherit;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--bord);
+  border-radius: 0.35rem;
+  background: var(--clair);
+  max-width: 100%;
+}
+
+textarea { width: 100%; }
+
+.bouton {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--clair);
+  border: none;
+  border-radius: 0.35rem;
+  padding: 0.5rem 0.9rem;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bouton.discret {
+  background: var(--papier);
+  color: var(--encre);
+  border: 1px solid var(--bord);
+}
+
+.lien-retour { margin-left: 1rem; }
+
+/* Liste des postes */
+.entete-liste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--clair);
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+}
+
+.table th, .table td {
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--bord);
+}
+
+.table thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gris);
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* Étiquettes */
+.chip {
+  display: inline-block;
+  border-radius: 1rem;
+  padding: 0.05rem 0.55rem;
+  font-size: 0.75rem;
+  background: #e8eaed;
+  color: var(--encre);
+}
+
+.chip.archive { background: #d9d4cc; color: #615c53; }
+.chip.origine-constat { background: #e8eaed; }
+.chip.origine-presqu_accident { background: #f6c667; }
+.chip.origine-accident { background: #e2a29b; }
+
+/* Fiche détail */
+.fiche {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 1.5rem;
+  background: var(--clair);
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.fiche dt { color: var(--gris); font-size: 0.85rem; padding: 0.15rem 0; }
+.fiche dd { margin: 0; padding: 0.15rem 0; }
+
+.actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; align-items: center; }
+
+/* Compteurs du tableau de bord */
+.compteurs {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 2rem;
+  background: var(--clair);
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.compteurs strong { font-size: 1.4rem; display: block; color: var(--accent); }
 
 /* Messages Django */
 .messages {

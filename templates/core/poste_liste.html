@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block titre %}Postes{% endblock %}
+{% block contenu %}
+<section>
+  <div class="entete-liste">
+    <h1>Postes</h1>
+    <a class="bouton" href="{% url 'poste_creer' %}">Nouveau poste</a>
+  </div>
+
+  <form class="filtres" method="get" action="{% url 'postes' %}">
+    <input type="text" name="q" placeholder="Rechercher…"
+           value="{{ filtres.q|default:'' }}">
+    <select name="lieu">
+      <option value="">Lieu : tous</option>
+      {% for l in lieux %}
+        <option value="{{ l.id }}" {% if filtres.lieu == l.id|stringformat:"s" %}selected{% endif %}>{{ l.nom }}</option>
+      {% endfor %}
+    </select>
+    <select name="gravite">
+      <option value="">Gravité : toutes</option>
+      {% for g in gravites %}
+        <option value="{{ g.id }}" {% if filtres.gravite == g.id|stringformat:"s" %}selected{% endif %}>{{ g.libelle }}</option>
+      {% endfor %}
+    </select>
+    <select name="satisfaction">
+      <option value="">Satisfaction : toutes</option>
+      {% for s in satisfactions %}
+        <option value="{{ s.id }}" {% if filtres.satisfaction == s.id|stringformat:"s" %}selected{% endif %}>{{ s.libelle }}</option>
+      {% endfor %}
+    </select>
+    <select name="archivage">
+      <option value="actifs" {% if archivage == "actifs" %}selected{% endif %}>Actifs</option>
+      <option value="archives" {% if archivage == "archives" %}selected{% endif %}>Archivés</option>
+      <option value="tous" {% if archivage == "tous" %}selected{% endif %}>Tous</option>
+    </select>
+    <button type="submit">Filtrer</button>
+  </form>
+
+  {% if postes %}
+  <table class="table">
+    <thead>
+      <tr><th>Poste</th><th>Lieu</th><th>Origine</th><th>Gravité</th><th>Fréquence</th><th>Satisfaction</th><th>Par</th></tr>
+    </thead>
+    <tbody>
+      {% for poste in postes %}
+      <tr>
+        <td>
+          <a href="{% url 'poste_detail' poste.pk %}">{{ poste.nom }}</a>
+          {% if poste.archive %}<span class="chip archive">archivé</span>{% endif %}
+        </td>
+        <td>{{ poste.lieu|default:"—" }}</td>
+        <td><span class="chip origine-{{ poste.origine }}">{{ poste.get_origine_display }}</span></td>
+        <td>{{ poste.gravite|default:"—" }}</td>
+        <td>{{ poste.frequence|default:"—" }}</td>
+        <td>
+          {% if poste.satisfaction %}
+            <span class="chip" style="background: {{ poste.satisfaction.couleur }}">{{ poste.satisfaction.libelle }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ poste.auteur.get_full_name|default:poste.auteur.username }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="apercu">Aucun poste ne correspond. Le premier réflexe de l'app :
+  décrire ce qui gêne au quotidien.</p>
+  {% endif %}
+</section>
+{% endblock %}

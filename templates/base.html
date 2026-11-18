@@ -11,7 +11,7 @@
   <nav class="barre">
     <a class="marque" href="{% url 'home' %}">Dudu</a>
     <a href="{% url 'home' %}" {% if section == "accueil" %}aria-current="page"{% endif %}>Accueil</a>
-    <span class="avenir" title="Jalon M1">Postes</span>
+    <a href="{% url 'postes' %}" {% if section == "postes" %}aria-current="page"{% endif %}>Postes</a>
     <span class="avenir" title="Jalon M2">Actions</span>
     <span class="avenir" title="Jalon M4">Revues</span>
     <span class="avenir" title="Jalon M3">Carte</span>

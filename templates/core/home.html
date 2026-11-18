@@ -4,7 +4,15 @@
 <section>
   <h1>Tableau de bord</h1>
   <p class="apercu">Suivi d'amélioration des conditions de travail — Centre Nautique</p>
-  <p>Le socle est en place. Les postes, actions, revues et la carte arrivent
-  aux jalons suivants du plan de développement.</p>
+  <ul class="compteurs">
+    <li><strong>{{ postes_actifs }}</strong> postes actifs</li>
+    <li><strong>{{ cotation_attention }}</strong> cotés santé / sécurité</li>
+    <li><strong>{{ postes_archives }}</strong> archivés</li>
+  </ul>
+  <p>
+    <a class="bouton" href="{% url 'postes' %}">Voir les postes</a>
+    <a class="bouton discret" href="{% url 'poste_creer' %}" style="margin-left:0.75rem">Nouveau poste</a>
+  </p>
+  <p class="apercu">Actions (M2), revue (M4) et carte (M3) arrivent aux jalons suivants.</p>
 </section>
 {% endblock %}

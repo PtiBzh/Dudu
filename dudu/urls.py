@@ -1,7 +1,7 @@
 """Routage principal de Dudu."""
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path
+from django.urls import include, path
 
 from core import views
 
@@ -12,6 +12,7 @@ admin.site.index_title = "Suivi d'amélioration des conditions de travail"
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home, name="home"),
+    path("", include("core.urls")),
     path(
         "connexion/",
         auth_views.LoginView.as_view(template_name="registration/login.html"),
