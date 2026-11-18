@@ -45,7 +45,7 @@
   {% endif %}
 
   <div class="actions">
-    {% if poste.peut_etre_modifie_par:user %}
+    {% if modifiable %}
       <a class="bouton" href="{% url 'poste_modifier' poste.pk %}">Modifier</a>
       <form class="ligne" method="post" action="{% url 'poste_archiver' poste.pk %}">
         {% csrf_token %}

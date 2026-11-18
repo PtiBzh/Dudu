@@ -80,7 +80,11 @@ def poste_detail(request, pk):
     return render(
         request,
         "core/poste_detail.html",
-        {"section": "postes", "poste": poste},
+        {
+            "section": "postes",
+            "poste": poste,
+            "modifiable": poste.peut_etre_modifie_par(request.user),
+        },
     )
 
 
