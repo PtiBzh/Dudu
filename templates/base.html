@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titre %}Accueil{% endblock %} · Dudu</title>
   <link rel="stylesheet" href="{% static 'css/dudu.css' %}">
+  {% block styles %}{% endblock %}
 </head>
 <body>
 <header>
@@ -14,7 +15,7 @@
     <a href="{% url 'postes' %}" {% if section == "postes" %}aria-current="page"{% endif %}>Postes</a>
     <a href="{% url 'actions' %}" {% if section == "actions" %}aria-current="page"{% endif %}>Actions</a>
     <span class="avenir" title="Jalon M4">Revues</span>
-    <span class="avenir" title="Jalon M3">Carte</span>
+    <a href="{% url 'carte' %}" {% if section == "carte" %}aria-current="page"{% endif %}>Carte</a>
     <span class="espace"></span>
     {% if user.is_authenticated %}
       <span class="qui">{{ user.get_full_name|default:user.username }}</span>
@@ -34,5 +35,6 @@
   {% endif %}
   {% block contenu %}{% endblock %}
 </main>
+{% block scripts %}{% endblock %}
 </body>
 </html>

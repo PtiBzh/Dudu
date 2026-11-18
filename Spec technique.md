@@ -86,8 +86,9 @@ fonctionnelle :
 - **MapLibre GL JS**, fond orthophoto IGN (tuiles WMTS de la
   géoplateforme), attribution IGN affichée
 - Positions stockées en WGS84 (lat/lng), rendu Mercator standard
-- **Terra Draw** activé uniquement sur : placement du point d'un
-  poste (création/édition) et dessin des formes dans l'admin plans
+- **Placement du point d'un poste** (création/édition) : simple clic
+  sur la mini-carte du formulaire (M3), marqueur déplaçable ; **Terra
+  Draw** servira au dessin des formes dans l'admin plans (M6)
 - **Plans de bâtiments** : formes dessinées ou images importées,
   dans le même système de coordonnées ; les étages sont dessinés
   les uns à côté des autres (« chez le voisin »), pas empilés

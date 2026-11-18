@@ -31,7 +31,8 @@
     </dd>
     {% if poste.latitude and poste.longitude %}
     <dt>Position</dt>
-    <dd>{{ poste.latitude|floatformat:5 }}, {{ poste.longitude|floatformat:5 }}</dd>
+    <dd>{{ poste.latitude|floatformat:5 }}, {{ poste.longitude|floatformat:5 }}
+      · <a href="{% url 'carte' %}?poste={{ poste.pk }}">voir sur la carte</a></dd>
     {% endif %}
   </dl>
 

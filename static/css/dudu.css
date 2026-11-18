@@ -245,3 +245,36 @@ tr.en-retard td { background: #fbeae9; }
   padding: 0.6rem 1rem;
   margin: 0.5rem 0;
 }
+
+/* Carte (M3) --------------------------------------------------------------- */
+
+.boite-carte,
+.mini-carte {
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.boite-carte { height: 32rem; }
+.mini-carte { height: 16rem; margin-bottom: 0.4rem; }
+
+/* Les popups MapLibre suivent la typo de l'app. */
+.maplibregl-popup-content { font: inherit; padding: 0.6rem 0.9rem; }
+.maplibregl-popup-content a { color: var(--accent); }
+
+.obligatoire {
+  color: #b3261e;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-left: 0.3rem;
+}
+
+.facultatif {
+  color: #6b7684;
+  font-size: 0.75rem;
+  font-weight: normal;
+  margin-left: 0.3rem;
+}
+
+.groupe-champ { margin: 0.9rem 0; }
+.groupe-champ label { display: block; font-weight: 600; margin-bottom: 0.4rem; }

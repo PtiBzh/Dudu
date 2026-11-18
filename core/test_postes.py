@@ -34,8 +34,9 @@ class PosteFixture(TestCase):
             "gravite": self.gravite.id,
             "frequence": self.frequence.id,
             "origine": Poste.Origine.CONSTAT,
-            "latitude": "",
-            "longitude": "",
+            # Position obligatoire depuis M3 (choisie sur la mini-carte).
+            "latitude": "48.4200",
+            "longitude": "-4.5500",
         }
         donnees.update(modifs)
         return donnees

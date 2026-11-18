@@ -118,3 +118,14 @@ STORAGES = {
 # Divers ------------------------------------------------------------------
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Carte (M3) ---------------------------------------------------------------
+# Centre et zoom initiaux de la carte et des mini-cartes de saisie.
+# Réglage d'affichage du club : remplacer par les coordonnées réelles du
+# centre nautique (surcharge possible par variable d'environnement).
+
+DUDU_CENTRE_CARTE = tuple(
+    float(c)
+    for c in os.environ.get("DUDU_CENTRE_CARTE", "48.42,-4.55").split(",")
+)
+DUDU_ZOOM_CARTE = int(os.environ.get("DUDU_ZOOM_CARTE", "16"))

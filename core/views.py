@@ -1,15 +1,18 @@
-"""Vues de Dudu — M1 : postes · M2 : actions.
+"""Vues de Dudu — M1 : postes · M2 : actions · M3 : carte.
 
 Rappels de spec : la création d'un poste est libre (équipe identifiée),
 l'édition est réservée à l'auteur et à l'animateur (tracée), la
 satisfaction ne se change qu'en revue (M4). Une action exige
 responsable et échéance (règle 2) ; hors revue, sa création est
-réservée à l'animateur (règle 5).
+réservée à l'animateur (règle 5). Depuis M3, la carte partage les
+filtres de la liste des postes et la position y est obligatoire.
 """
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from .forms import ActionCreationForm, ActionModificationForm, PosteForm
@@ -43,6 +46,91 @@ def home(request):
         ).count(),
     }
     return render(request, "core/home.html", context)
+
+
+@login_required
+def carte(request):
+    """Carte des postes et actions (M3) — mêmes filtres que la liste.
+
+    Fond : orthophoto IGN via la géoplateforme (tuiles WMTS chargées
+    côté navigateur par MapLibre). Seuls les postes positionnés sont
+    affichés ; les actions ouvertes liées à ces postes apparaissent en
+    petits points. Un clic sur un marqueur ouvre un lien vers la
+    fiche ; ?poste=pk centre la vue sur un poste donné.
+    """
+    liste = Poste.objects.filter(latitude__isnull=False).select_related(
+        "lieu", "auteur", "gravite", "frequence", "satisfaction"
+    )
+
+    archivage = request.GET.get("archivage", "actifs")
+    if archivage == "archives":
+        liste = liste.filter(archive=True)
+    elif archivage != "tous":
+        liste = liste.filter(archive=False)
+
+    filtres = {}
+    for champ in ("lieu", "satisfaction", "gravite"):
+        valeur = request.GET.get(champ, "")
+        if valeur:
+            liste = liste.filter(**{f"{champ}_id": valeur})
+            filtres[champ] = valeur
+
+    recherche = request.GET.get("q", "").strip()
+    if recherche:
+        liste = liste.filter(
+            Q(nom__icontains=recherche)
+            | Q(description__icontains=recherche)
+        )
+        filtres["q"] = recherche
+
+    actions_visibles = Action.objects.filter(
+        latitude__isnull=False,
+        statut__in=STATUTS_OUVERTS,
+        poste__in=liste.values("pk"),
+    ).select_related("poste")
+
+    donnees_carte = {
+        "postes": [
+            {
+                "id": poste.pk,
+                "nom": poste.nom,
+                "lat": poste.latitude,
+                "lng": poste.longitude,
+                "couleur": poste.gravite.couleur if poste.gravite else None,
+                "halo": (
+                    poste.satisfaction.couleur
+                    if poste.satisfaction
+                    else None
+                ),
+                "url": reverse("poste_detail", args=[poste.pk]),
+            }
+            for poste in liste
+        ],
+        "actions": [
+            {
+                "id": action.pk,
+                "intitule": action.intitule,
+                "statut": action.get_statut_display(),
+                "lat": action.latitude,
+                "lng": action.longitude,
+                "url": reverse("action_detail", args=[action.pk]),
+            }
+            for action in actions_visibles
+        ],
+    }
+    context = {
+        "section": "carte",
+        "donnees_carte": donnees_carte,
+        "centre": settings.DUDU_CENTRE_CARTE,
+        "zoom": settings.DUDU_ZOOM_CARTE,
+        "poste_cible": request.GET.get("poste", ""),
+        "filtres": filtres,
+        "archivage": archivage,
+        "lieux": Lieu.objects.all(),
+        "satisfactions": ValeurSatisfaction.objects.all(),
+        "gravites": ValeurGravite.objects.all(),
+    }
+    return render(request, "core/carte.html", context)
 
 
 @login_required
@@ -117,7 +205,13 @@ def poste_creer(request):
     return render(
         request,
         "core/poste_form.html",
-        {"section": "postes", "form": form, "titre": "Nouveau poste"},
+        {
+            "section": "postes",
+            "form": form,
+            "titre": "Nouveau poste",
+            "centre": settings.DUDU_CENTRE_CARTE,
+            "zoom": settings.DUDU_ZOOM_CARTE,
+        },
     )
 
 
@@ -139,6 +233,8 @@ def poste_modifier(request, pk):
             "form": form,
             "titre": "Modifier le poste",
             "poste": poste,
+            "centre": settings.DUDU_CENTRE_CARTE,
+            "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
 
@@ -249,6 +345,8 @@ def action_creer(request, poste_pk):
             "form": form,
             "titre": "Nouvelle action",
             "poste": poste,
+            "centre": settings.DUDU_CENTRE_CARTE,
+            "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
 
@@ -275,5 +373,7 @@ def action_modifier(request, pk):
             "titre": "Modifier l'action",
             "action": action,
             "poste": action.poste,
+            "centre": settings.DUDU_CENTRE_CARTE,
+            "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )

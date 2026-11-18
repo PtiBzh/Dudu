@@ -4,6 +4,7 @@
 <section>
   <div class="entete-liste">
     <h1>Postes</h1>
+    <a class="lien-retour" href="{% url 'carte' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">Carte</a>
     <a class="bouton" href="{% url 'poste_creer' %}">Nouveau poste</a>
   </div>
 

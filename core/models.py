@@ -3,6 +3,7 @@
 M0 : comptes identifiés + rôle animateur.
 M1 : postes de travail, cotation santé/sécurité, traçabilité des éditions.
 M2 : actions d'amélioration (responsable et échéance obligatoires).
+M3 : couleurs des valeurs de cotation pour les marqueurs carte.
 
 Règles de gestion (Spec Dudu.md) :
 1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé ;
@@ -56,10 +57,18 @@ class Lieu(models.Model):
 
 
 class ValeurCotation(models.Model):
-    """Socle commun des listes de valeurs (libellé + ordre)."""
+    """Socle commun des listes de valeurs : libellé, ordre et couleur
+    du marqueur carte (remplissage = santé/sécurité, halo =
+    satisfaction, teintes des états d'action)."""
 
     libelle = models.CharField("libellé", max_length=50)
     ordre = models.PositiveSmallIntegerField("ordre", default=0)
+    couleur = models.CharField(
+        "couleur",
+        max_length=20,
+        default="#6b7684",
+        help_text="Code hexadécimal du marqueur carte, ex. #0d6b7c",
+    )
 
     class Meta:
         abstract = True
@@ -72,14 +81,8 @@ class ValeurCotation(models.Model):
 class ValeurSatisfaction(ValeurCotation):
     """Valeur de satisfaction d'un poste (défaut : Satisfaisant /
     À améliorer / Critique). Assignée uniquement en revue (règle 3),
-    donc absente du formulaire de création."""
-
-    couleur = models.CharField(
-        "couleur",
-        max_length=20,
-        default="#6b7684",
-        help_text="Code hexadécimal du marqueur carte, ex. #0d6b7c",
-    )
+    donc absente du formulaire de création. Sa couleur dessine le halo
+    du marqueur carte du poste."""
 
     class Meta(ValeurCotation.Meta):
         verbose_name = "valeur de satisfaction"
@@ -87,7 +90,8 @@ class ValeurSatisfaction(ValeurCotation):
 
 
 class ValeurGravite(ValeurCotation):
-    """Gravité potentielle — bloc santé/sécurité du poste."""
+    """Gravité potentielle — bloc santé/sécurité du poste. Sa couleur
+    remplit le marqueur carte (M3)."""
 
     class Meta(ValeurCotation.Meta):
         verbose_name = "valeur de gravité"
@@ -131,8 +135,10 @@ class Poste(models.Model):
     )
     date_creation = models.DateTimeField("créé le", auto_now_add=True)
 
-    # Position sur la carte — obligatoire à partir de M3 (clic carte) ;
-    # optionnelle en M1/M2 (noyau utilisable sans carte).
+    # Position sur la carte (WGS84) — obligatoire depuis M3 : le
+    # formulaire place le poste d'un clic sur la mini-carte. Le champ
+    # reste nullable en base pour ne pas casser les données saisies
+    # avant la carte.
     latitude = models.FloatField("latitude", null=True, blank=True)
     longitude = models.FloatField("longitude", null=True, blank=True)
 

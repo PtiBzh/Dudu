@@ -1,9 +1,10 @@
-"""Routage de l'application core (postes, actions)."""
+"""Routage de l'application core (postes, actions, carte)."""
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
+    path("carte/", views.carte, name="carte"),
     path("postes/", views.postes, name="postes"),
     path("postes/nouveau/", views.poste_creer, name="poste_creer"),
     path("postes/<int:pk>/", views.poste_detail, name="poste_detail"),

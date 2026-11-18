@@ -49,12 +49,12 @@ class ValeurSatisfactionAdmin(admin.ModelAdmin):
 
 @admin.register(ValeurGravite)
 class ValeurGraviteAdmin(admin.ModelAdmin):
-    list_display = ("libelle", "ordre")
+    list_display = ("libelle", "ordre", "couleur")
 
 
 @admin.register(ValeurFrequence)
 class ValeurFrequenceAdmin(admin.ModelAdmin):
-    list_display = ("libelle", "ordre")
+    list_display = ("libelle", "ordre", "couleur")
 
 
 @admin.register(Poste)

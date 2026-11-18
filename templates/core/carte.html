@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block titre %}Carte{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">{% endblock %}
+{% block contenu %}
+<div class="entete-liste">
+  <h1>Carte des postes</h1>
+  <a class="lien-retour" href="{% url 'postes' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">Vue liste</a>
+</div>
+<p class="apercu">Fond : orthophoto IGN. Un poste apparaît à sa position :
+le remplissage du marqueur donne la gravité santé/sécurité, le halo la
+satisfaction (fixée en revue). Les petites pastilles turquoise sont les
+actions ouvertes. Mêmes filtres que la vue liste.</p>
+
+<form class="filtres" method="get" action="{% url 'carte' %}">
+  <input type="text" name="q" placeholder="Rechercher…"
+         value="{{ filtres.q|default:'' }}">
+  <select name="lieu">
+    <option value="">Lieu : tous</option>
+    {% for l in lieux %}
+      <option value="{{ l.id }}" {% if filtres.lieu == l.id|stringformat:"s" %}selected{% endif %}>{{ l.nom }}</option>
+    {% endfor %}
+  </select>
+  <select name="gravite">
+    <option value="">Gravité : toutes</option>
+    {% for g in gravites %}
+      <option value="{{ g.id }}" {% if filtres.gravite == g.id|stringformat:"s" %}selected{% endif %}>{{ g.libelle }}</option>
+    {% endfor %}
+  </select>
+  <select name="satisfaction">
+    <option value="">Satisfaction : toutes</option>
+    {% for s in satisfactions %}
+      <option value="{{ s.id }}" {% if filtres.satisfaction == s.id|stringformat:"s" %}selected{% endif %}>{{ s.libelle }}</option>
+    {% endfor %}
+  </select>
+  <select name="archivage">
+    <option value="actifs" {% if archivage == "actifs" %}selected{% endif %}>Actifs</option>
+    <option value="archives" {% if archivage == "archives" %}selected{% endif %}>Archivés</option>
+    <option value="tous" {% if archivage == "tous" %}selected{% endif %}>Tous</option>
+  </select>
+  <button type="submit">Filtrer</button>
+</form>
+
+<div id="carte" class="boite-carte"
+     data-lat="{{ centre.0 }}"
+     data-lng="{{ centre.1 }}"
+     data-zoom="{{ zoom }}"
+     data-poste="{{ poste_cible }}"></div>
+{{ donnees_carte|json_script:"donnees-carte" }}
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/fond-carte.js' %}"></script>
+<script src="{% static 'js/carte.js' %}"></script>
+{% endblock %}
