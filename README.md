@@ -47,10 +47,35 @@ Chaque push déclenche la CI (GitHub Actions) : générations des migrations
 manquantes, migration, tests. Les migrations manquantes sont committées
 automatiquement par la CI (validées par les tests), on ne les écrit jamais
 à la main. Elle télécharge et committe aussi les bibliothèques vendored
-(MapLibre GL JS, empreintes vérifiées). En cas d'échec, elle commite un
+(MapLibre GL JS, empreintes vérifiées). Elle construit enfin l'image
+Docker (M7). En cas d'échec, elle commette un
 « Diagnostic CI.txt » avec le détail complet de l'erreur.
 
-## État : M6 (plans)
+## Déploiement (club)
+
+Un seul conteneur : gunicorn + WhiteNoise, base SQLite et fichiers dans le
+volume `/data` (photos, plans, sauvegardes). Aucune exposition publique :
+accès réseau local ou WireGuard uniquement.
+
+```bash
+cp .env.example .env        # renseigner DUDU_SECRET_KEY (obligatoire)
+docker compose up -d --build
+```
+
+Au démarrage du conteneur : migrations automatiques, puis cron de
+sauvegarde quotidien (désactivable via `DUDU_CRON=aucun`).
+
+- Sauvegarde : copie SQLite à chaud (`.backup`) vers `/data/sauvegardes/base/`,
+  miroir rsync des photos et plans vers `BACKUP_DEST`, rétention 90 jours,
+  contrôle (nombre de fichiers, taille) consigné dans
+  `/data/sauvegardes/journal.log` qui termine par « SAUVEGARDE OK » ou
+  « ANOMALIE » (exit ≠ 0).
+- Médias servis par l'application derrière le login (jamais par le serveur
+  web), avec garde-fou d'évasion de chemin.
+- Le dossier `data/` du dépôt sert au développement ; en production
+  `DUDU_DATA=/data` dans le conteneur.
+
+## État : M7 (déploiement)
 
 - [x] M0 : socle — projet Django, comptes identifiés + rôle animateur, login, admin, interface de base, CI
 - [x] M1 : postes — création libre, fiche, liste filtrable (lieu, satisfaction, gravité, recherche), cotation santé/sécurité, édition tracée, archivage (aucune suppression)
@@ -59,4 +84,4 @@ automatiquement par la CI (validées par les tests), on ne les écrit jamais
 - [x] M4 : revues — journal historique : date, participants, postes examinés, décisions de satisfaction consignées (règle 3, journal immuable), actions créées en revue par toute l'équipe, compte rendu, historique de satisfaction sur le poste
 - [x] M5 : photos — « avant » au poste (toute l'équipe), « après » à l'action (responsable ou animateur), compression ~1600 px JPEG qualité 85 à l'upload (Pillow, EXIF respecté), stockage data/photos/AAAA/, avertissement non bloquant si clôture sans photo (règle 5), galeries avant/après sur le poste et en revue
 - [x] M6 : plans de bâtiments — formes dessinées à la souris (Terra Draw, éditeur dédié) ou images PNG/JPG calées par 4 coins WGS84 (éditeur maison : poignées, déplacement, échelle, opacité), étages côte à côte jamais empilés, affichage sous les marqueurs sur la carte, gestion réservée au staff
-- [ ] M7 : conteneur, sauvegarde, déploiement
+- [x] M7 : conteneur & déploiement — image unique (gunicorn + WhiteNoise + Pillow), volume `/data` (base, photos, plans, sauvegardes), SQLite en WAL, migrations au démarrage, sauvegarde quotidienne cron (`.backup` à chaud + miroir rsync photos/plans, rétention 90 j, contrôle au journal), médias identifiés (vue dédiée), compose + `.env`, réseau local/WireGuard sans exposition publique, `docker build` vérifié en CI
