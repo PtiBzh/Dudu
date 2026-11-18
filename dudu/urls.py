@@ -1,6 +1,4 @@
 """Routage principal de Dudu."""
-from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
@@ -22,8 +20,5 @@ urlpatterns = [
     ),
     path("deconnexion/", auth_views.LogoutView.as_view(), name="logout"),
 ]
-
-if settings.DEBUG:
-    # Dev uniquement : en production WhiteNoise sert les statiques et
-    # les médias restent dans le volume, servis par l'app (M7).
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Les médias passent par la vue « medias » de core (identifiée, depuis
+# M7 — plus de raccourci django.views.static en dev).

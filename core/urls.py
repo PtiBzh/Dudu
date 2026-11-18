@@ -6,6 +6,11 @@ from . import views
 
 urlpatterns = [
     path("carte/", views.carte, name="carte"),
+    path(
+        "medias/<path:chemin>",
+        views.medias,
+        name="medias",
+    ),
     path("revues/", views.revues, name="revues"),
     path("revues/nouvelle/", views.revue_creer, name="revue_creer"),
     path("revues/<int:pk>/", views.revue_detail, name="revue_detail"),

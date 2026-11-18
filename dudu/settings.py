@@ -24,7 +24,22 @@ SECRET_KEY = os.environ.get(
 # False en production (M7) ; piloté par variable d'environnement.
 DEBUG = os.environ.get("DUDU_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# Hôtes autorisés : en production, le nom/IP local du club (réseau
+# local + WireGuard, jamais d'exposition publique). CSV par variable
+# d'environnement.
+ALLOWED_HOSTS = [
+    hote.strip()
+    for hote in os.environ.get("DUDU_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if hote.strip()
+]
+
+# Formulaires POST depuis une origine explicite (ex. http://dudu.local)
+# le cas échéant — même-origine, inutile le plus souvent.
+CSRF_TRUSTED_ORIGINS = [
+    origine.strip()
+    for origine in os.environ.get("DUDU_ORIGINES_CSFR", "").split(",")
+    if origine.strip()
+]
 
 # Applications ------------------------------------------------------------
 
@@ -70,13 +85,14 @@ TEMPLATES = [
 WSGI_APPLICATION = "dudu.wsgi.application"
 
 # Base de données ---------------------------------------------------------
-# SQLite en mode simple pour l'instant ; le volume /data et le mode WAL
-# arrivent avec le déploiement conteneur (M7).
+# SQLite en mode WAL (spec technique), dans le volume /data en
+# production : base + photos + plans d'un seul tenant (sauvegardes).
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": Path(os.environ.get("DUDU_DATA", str(BASE_DIR))) / "db.sqlite3",
+        "OPTIONS": {"init_command": "PRAGMA journal_mode=WAL;"},
     }
 }
 
