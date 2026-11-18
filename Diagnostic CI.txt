@@ -1,0 +1,20 @@
+Creating test database for alias 'default'...
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+  mw_instance = middleware(adapted_handler)
+...............................................................................F........
+======================================================================
+FAIL: test_liste_et_detail (core.test_revues.RevueAccesTests.test_liste_et_detail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_revues.py", line 107, in test_liste_et_detail
+    self.assertContains(response, "Lea")
+AssertionError: False is not true : Couldn't find 'Lea' in the following response
+b'<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>Revue du 17 novembre 2026 \xc2\xb7 Dudu</title>\n  <link rel="stylesheet" href="/static/css/dudu.css">\n  \n</head>\n<body>\n<header>\n  <nav class="barre">\n    <a class="marque" href="/">Dudu</a>\n    <a href="/" >Accueil</a>\n    <a href="/postes/" >Postes</a>\n    <a href="/actions/" >Actions</a>\n    <a href="/revues/" aria-current="page">Revues</a>\n    <a href="/carte/" >Carte</a>\n    <span class="espace"></span>\n    \n      <span class="qui">alice</span>\n      \n      <form class="ligne" method="post" action="/deconnexion/">\n        <input type="hidden" name="csrfmiddlewaretoken" value="wRgc28ojvwy7kCMjRLsjEufqUTV2e9FNy3toKLmPC1Ma3DJrLRsqoHHP6TGAfDZR">\n        <button class="lien" type="submit">D\xc3\xa9connexion</button>\n      </form>\n    \n  </nav>\n</header>\n<main>\n  \n  \n<section>\n  <div class="entete-liste">\n    <h1>Revue du 17 novembre 2026</h1>\n    <a class="bouton discret" href="/revues/1/modifier/">Modifier</a>\n  </div>\n  <p class="apercu">\n    \n      Participants :\n      \n        alice \xc2\xb7 \n      \n        lea\n      \n    \n  </p>\n\n  <h2>Postes examin\xc3\xa9s</h2>\n  \n\n  \n  <table class="table">\n    <thead>\n      <tr><th>Poste</th><th>Satisfaction actuelle</th><th>D\xc3\xa9cision coll\xc3\xa9giale</th><th></th></tr>\n    </thead>\n    <tbody>\n      \n      <tr id="poste-1">\n        <td><a href="/postes/1/">Manutention remorque planches</a></td>\n        <td>\n          <span class="apercu">\xc3\xa0 d\xc3\xa9cider</span>\n        </td>\n        <td>\n          <form class="ligne" method="post"\n                action="/revues/1/postes/1/satisfaction/">\n            <input type="hidden" name="csrfmiddlewaretoken" value="wRgc28ojvwy7kCMjRLsjEufqUTV2e9FNy3toKLmPC1Ma3DJrLRsqoHHP6TGAfDZR">\n            <select name="satisfaction">\n              \n                <option value="1" >Satisfaisant</option>\n              \n                <option value="2" >\xc3\x80 am\xc3\xa9liorer</option>\n              \n                <option value="3" >Critique</option>\n              \n            </select>\n            <button class="bouton discret" type="submit">D\xc3\xa9cider</button>\n          </form>\n        </td>\n        <td class="ligne">\n          <a class="lien-retour" href="/postes/1/actions/nouveau/?revue=1">Nouvelle action</a>\n          <form class="ligne" method="post"\n                action="/revues/1/postes/1/retirer/">\n            <input type="hidden" name="csrfmiddlewaretoken" value="wRgc28ojvwy7kCMjRLsjEufqUTV2e9FNy3toKLmPC1Ma3DJrLRsqoHHP6TGAfDZR">\n            <button class="lien" type="submit">Retirer</button>\n          </form>\n        </td>\n      </tr>\n      \n    </tbody>\n  </table>\n  \n\n  \n\n  \n\n  <h2>Compte rendu</h2>\n  \n  <p><p>Point complet de l&#x27;\xc3\xa9quipe.</p></p>\n  \n</section>\n\n</main>\n\n</body>\n</html>\n'
+
+----------------------------------------------------------------------
+Ran 88 tests in 30.804s
+
+FAILED (failures=1)
+Destroying test database for alias 'default'...
+Found 88 test(s).
+System check identified no issues (0 silenced).
