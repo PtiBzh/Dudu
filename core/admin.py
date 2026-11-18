@@ -9,9 +9,11 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import (
     Action,
+    ChangementSatisfaction,
     EditionPoste,
     Lieu,
     Poste,
+    Revue,
     Utilisateur,
     ValeurFrequence,
     ValeurGravite,
@@ -91,10 +93,47 @@ class EditionPosteAdmin(admin.ModelAdmin):
 class ActionAdmin(admin.ModelAdmin):
     """Consultation et rattrapage ; suppression interdite (règle 1)."""
 
-    list_display = ("intitule", "poste", "responsable", "echeance", "statut")
-    list_filter = ("statut", "responsable")
+    list_display = (
+        "intitule",
+        "poste",
+        "responsable",
+        "echeance",
+        "statut",
+        "revue",
+    )
+    list_filter = ("statut", "responsable", "revue")
     search_fields = ("intitule", "description", "poste__nom")
     date_hierarchy = "echeance"
 
     def has_delete_permission(self, request, obj=None):
         return False  # règle 1 : rien ne disparaît
+
+
+@admin.register(Revue)
+class RevueAdmin(admin.ModelAdmin):
+    """Journal historique des revues ; suppression interdite (règle 1)."""
+
+    list_display = ("date", "compte_rendu")
+    date_hierarchy = "date"
+    filter_horizontal = ("participants", "postes")
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # une revue ne disparaît pas
+
+
+@admin.register(ChangementSatisfaction)
+class ChangementSatisfactionAdmin(admin.ModelAdmin):
+    """Journal des décisions : lecture seule, jamais éditable ni
+    supprimable — le journal est immuable."""
+
+    list_display = ("poste", "ancienne", "nouvelle", "revue", "quand")
+    search_fields = ("poste__nom",)
+
+    def has_add_permission(self, request):
+        return False  # les décisions se prennent dans l'app, en revue
+
+    def has_change_permission(self, request, obj=None):
+        return False  # le journal est le journal
+
+    def has_delete_permission(self, request, obj=None):
+        return False

@@ -15,7 +15,16 @@
     <a class="bouton" href="{% url 'postes' %}">Voir les postes</a>
     <a class="bouton discret" href="{% url 'actions' %}" style="margin-left:0.75rem">Voir les actions</a>
   </p>
-  <p class="apercu">Revues (M4), photos (M5) et plans de bâtiments (M6)
+  <p class="repartition">
+    {% for valeur in repartition %}
+      {% if valeur.nb %}
+        <span class="chip" style="background: {{ valeur.couleur }}">{{ valeur.nb }} {{ valeur.libelle|lower }}</span>
+      {% endif %}
+    {% endfor %}
+  </p>
+  <p class="apercu">{% if derniere_revue %}Dernière revue :
+  <a href="{% url 'revue_detail' derniere_revue.pk %}">{{ derniere_revue.date|date:"j F Y" }}</a>.{% else %}Aucune revue enregistrée pour l'instant.{% endif %}</p>
+  <p class="apercu">Photos (M5) et plans de bâtiments (M6)
   arrivent aux jalons suivants.</p>
 </section>
 {% endblock %}

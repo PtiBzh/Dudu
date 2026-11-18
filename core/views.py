@@ -1,25 +1,33 @@
-"""Vues de Dudu — M1 : postes · M2 : actions · M3 : carte.
+"""Vues de Dudu — M1 : postes · M2 : actions · M3 : carte · M4 : revues.
 
 Rappels de spec : la création d'un poste est libre (équipe identifiée),
 l'édition est réservée à l'auteur et à l'animateur (tracée), la
 satisfaction ne se change qu'en revue (M4). Une action exige
 responsable et échéance (règle 2) ; hors revue, sa création est
-réservée à l'animateur (règle 5). Depuis M3, la carte partage les
-filtres de la liste des postes et la position y est obligatoire.
+réservée à l'animateur (règle 5), au sein d'une revue elle est
+collégiale. Depuis M3, la carte partage les filtres de la liste des
+postes et la position y est obligatoire.
 """
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from .forms import ActionCreationForm, ActionModificationForm, PosteForm
+from .forms import (
+    ActionCreationForm,
+    ActionModificationForm,
+    PosteForm,
+    RevueForm,
+)
 from .models import (
     Action,
+    ChangementSatisfaction,
     Lieu,
     Poste,
+    Revue,
     Utilisateur,
     ValeurGravite,
     ValeurSatisfaction,
@@ -44,6 +52,12 @@ def home(request):
         "actions_en_retard": Action.objects.filter(
             statut__in=STATUTS_OUVERTS, echeance__lt=timezone.localdate()
         ).count(),
+        "repartition": ValeurSatisfaction.objects.annotate(
+            nb=Count("postes", filter=Q(postes__archive=False))
+        ),
+        "derniere_revue": Revue.objects.order_by(
+            "-date", "-date_creation"
+        ).first(),
     }
     return render(request, "core/home.html", context)
 
@@ -314,15 +328,24 @@ def action_detail(request, pk):
 
 @login_required
 def action_creer(request, poste_pk):
-    """Règle 5 : hors revue (les revues arrivent en M4), seule
-    l'animatrice ou l'animateur crée une action urgente. L'action est
-    alors inscrite d'office à la prochaine revue."""
+    """Règle 2 : responsable et échéance obligatoires. Règle 5 : hors
+    revue, la création est réservée à l'animateur (action urgente,
+    inscrite d'office à la prochaine revue). Au sein d'une revue
+    collégiale (M4), toute l'équipe identifiée peut saisir la décision
+    du moment — l'action porte alors la trace de cette revue."""
     poste = get_object_or_404(Poste, pk=poste_pk)
-    if not request.user.is_animateur:
+
+    revue = None
+    identifiant_revue = request.GET.get("revue") or request.POST.get("revue")
+    if identifiant_revue:
+        # Une revue précisée doit exister : pas de rattachement fantôme.
+        revue = get_object_or_404(Revue, pk=identifiant_revue)
+    elif not request.user.is_animateur:
         raise PermissionDenied(
-            "Jusqu'aux revues (M4), seule l'animatrice ou l'animateur "
-            "peut créer une action (règle 5)."
+            "Hors revue, seule l'animatrice ou l'animateur peut créer "
+            "une action urgente (règle 5)."
         )
+
     form = ActionCreationForm(
         request.POST or None,
         initial={"latitude": poste.latitude, "longitude": poste.longitude},
@@ -330,6 +353,7 @@ def action_creer(request, poste_pk):
     if request.method == "POST" and form.is_valid():
         action = form.save(commit=False)
         action.poste = poste
+        action.revue = revue
         # Position héritée du poste si aucune autre n'est donnée.
         if action.latitude is None:
             action.latitude = poste.latitude
@@ -345,6 +369,7 @@ def action_creer(request, poste_pk):
             "form": form,
             "titre": "Nouvelle action",
             "poste": poste,
+            "revue": revue,
             "centre": settings.DUDU_CENTRE_CARTE,
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
@@ -377,3 +402,127 @@ def action_modifier(request, pk):
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
+
+
+@login_required
+def revues(request):
+    """Journal historique : toutes les revues, de la plus récente à
+    la plus ancienne."""
+    liste = Revue.objects.prefetch_related("participants", "postes")
+    return render(
+        request,
+        "core/revue_liste.html",
+        {"section": "revues", "revues": liste},
+    )
+
+
+@login_required
+def revue_creer(request):
+    """Une revue s'ouvre par quiconque de l'équipe anime la réunion :
+    le secrétariat de l'app ne connaît pas de gatekeeper."""
+    form = RevueForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        revue = form.save()
+        return redirect("revue_detail", pk=revue.pk)
+    return render(
+        request,
+        "core/revue_form.html",
+        {"section": "revues", "form": form, "titre": "Nouvelle revue"},
+    )
+
+
+@login_required
+def revue_modifier(request, pk):
+    revue = get_object_or_404(Revue, pk=pk)
+    form = RevueForm(request.POST or None, instance=revue)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("revue_detail", pk=revue.pk)
+    return render(
+        request,
+        "core/revue_form.html",
+        {
+            "section": "revues",
+            "form": form,
+            "titre": "Modifier la revue",
+            "revue": revue,
+        },
+    )
+
+
+@login_required
+def revue_detail(request, pk):
+    """Écran de travail de la revue (écran 5 de la spec) : postes
+    examinés, décisions de satisfaction journalisées, actions créées,
+    compte rendu."""
+    revue = get_object_or_404(
+        Revue.objects.prefetch_related(
+            "participants",
+            "postes",
+            "postes__gravite",
+            "postes__satisfaction",
+        ),
+        pk=pk,
+    )
+    context = {
+        "section": "revues",
+        "revue": revue,
+        "postes_examines": revue.postes.all(),
+        "postes_disponibles": Poste.objects.filter(archive=False)
+        .exclude(revues=revue)
+        .order_by("nom"),
+        "satisfactions": ValeurSatisfaction.objects.all(),
+        "changements": revue.changements.select_related(
+            "poste", "ancienne", "nouvelle"
+        ),
+        "actions": revue.actions.select_related("poste", "responsable"),
+    }
+    return render(request, "core/revue_detail.html", context)
+
+
+@login_required
+def revue_poste_ajouter(request, pk):
+    """Ajoute un poste aux postes examinés (POST uniquement)."""
+    revue = get_object_or_404(Revue, pk=pk)
+    if request.method == "POST":
+        poste = get_object_or_404(
+            Poste, pk=request.POST.get("poste", ""), archive=False
+        )
+        revue.postes.add(poste)
+    return redirect("revue_detail", pk=revue.pk)
+
+
+@login_required
+def revue_poste_retirer(request, pk, poste_pk):
+    """Retire un poste des examinés (POST uniquement). Les décisions
+    déjà consignées restent au journal — elles restent vraies."""
+    revue = get_object_or_404(Revue, pk=pk)
+    if request.method == "POST":
+        poste = get_object_or_404(Poste, pk=poste_pk)
+        if poste in revue.postes.all():
+            revue.postes.remove(poste)
+    return redirect("revue_detail", pk=revue.pk)
+
+
+@login_required
+def revue_satisfaction(request, pk, poste_pk):
+    """Règle 3 : la satisfaction d'un poste ne change qu'ici — décision
+    collégiale consignée au journal (POST uniquement, poste examiné
+    uniquement, nouvelle valeur distincte de l'actuelle uniquement)."""
+    revue = get_object_or_404(Revue, pk=pk)
+    poste = get_object_or_404(revue.postes, pk=poste_pk)
+    if request.method == "POST":
+        nouvelle = get_object_or_404(
+            ValeurSatisfaction, pk=request.POST.get("satisfaction", "")
+        )
+        if nouvelle != poste.satisfaction:
+            ChangementSatisfaction.objects.create(
+                revue=revue,
+                poste=poste,
+                ancienne=poste.satisfaction,
+                nouvelle=nouvelle,
+            )
+            poste.satisfaction = nouvelle
+            poste.save(update_fields=["satisfaction"])
+    retour = reverse("revue_detail", args=[revue.pk])
+    return redirect(f"{retour}#poste-{poste.pk}")

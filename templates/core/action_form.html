@@ -6,9 +6,11 @@
 <section class="boite large">
   <h1>{{ titre }}</h1>
   {% if poste and not action %}
-  <p class="apercu">Une action de plus pour « {{ poste.nom }} ». Responsable et
-  échéance sont obligatoires : une action sans responsable ni échéance ne peut
-  pas être créée (règle 2).</p>
+  <p class="apercu">{% if revue %}Décision collégiale de la revue du
+  {{ revue.date|date:"j F Y" }}.{% else %}Une action de plus pour
+  « {{ poste.nom }} ».{% endif %} Responsable et
+  échéance sont obligatoires : une action sans responsable ni échéance
+  ne peut pas être créée (règle 2).</p>
   {% elif action %}
   <p class="apercu">« {{ action.intitule }} » pour {{ action.poste.nom }}.
   L'échéance peut être décalée ; abandonner exige un motif.</p>
@@ -22,6 +24,7 @@
 
   <form method="post">
     {% csrf_token %}
+    {% if revue %}<input type="hidden" name="revue" value="{{ revue.pk }}">{% endif %}
     {% for champ in form.visible_fields %}
     <p {% if champ.errors %}class="champ-erreur"{% endif %}>
       <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>

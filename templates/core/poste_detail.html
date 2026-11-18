@@ -36,6 +36,18 @@
     {% endif %}
   </dl>
 
+  {% if poste.changements_satisfaction.all %}
+  <h2>Historique de satisfaction</h2>
+  <ul class="liste-actions">
+    {% for changement in poste.changements_satisfaction.all %}
+    <li>
+      {{ changement.ancienne|default:"À décider" }} → {{ changement.nouvelle.libelle }}
+      <span class="apercu">décidé en <a href="{% url 'revue_detail' changement.revue.pk %}">revue du {{ changement.revue.date|date:"j F Y" }}</a></span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
   {% if poste.editions.all %}
   <p class="apercu">
     Dernière modification par

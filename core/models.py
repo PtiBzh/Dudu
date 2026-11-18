@@ -4,6 +4,7 @@ M0 : comptes identifiés + rôle animateur.
 M1 : postes de travail, cotation santé/sécurité, traçabilité des éditions.
 M2 : actions d'amélioration (responsable et échéance obligatoires).
 M3 : couleurs des valeurs de cotation pour les marqueurs carte.
+M4 : revues collégiales — journal historique des décisions.
 
 Règles de gestion (Spec Dudu.md) :
 1. Rien ne disparaît : un poste n'est jamais supprimé, au mieux archivé ;
@@ -272,6 +273,18 @@ class Action(models.Model):
     latitude = models.FloatField("latitude", null=True, blank=True)
     longitude = models.FloatField("longitude", null=True, blank=True)
 
+    # Revue de création : preuve de la décision collégiale (M4). Vide
+    # pour une action urgente créée hors revue (règle 5), inscrite
+    # d'office à la prochaine revue.
+    revue = models.ForeignKey(
+        "Revue",
+        verbose_name="revue de création",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="actions",
+    )
+
     class Meta:
         verbose_name = "action"
         ordering = ["echeance", "date_creation"]
@@ -304,4 +317,99 @@ class Action(models.Model):
         raise PermissionDenied(
             "Une action ne se supprime pas : abandonnée, elle reste "
             "visible avec son motif (règle 1)."
+        )
+
+
+class Revue(models.Model):
+    """Revue de réunion — journal historique des choix de l'équipe
+    (M4). La satisfaction d'un poste ne se décide qu'ici (règle 3) ;
+    chaque changement est consigné via ChangementSatisfaction. Les
+    actions décidées collégialement y sont rattachées ; les urgentes
+    créées hors revue par l'animateur restent visibles à part.
+    """
+
+    date = models.DateField("date de la revue")
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        verbose_name="participants",
+        blank=True,
+        related_name="revues_participees",
+    )
+    postes = models.ManyToManyField(
+        Poste,
+        verbose_name="postes examinés",
+        blank=True,
+        related_name="revues",
+    )
+    compte_rendu = models.TextField("compte rendu", blank=True)
+    date_creation = models.DateTimeField("enregistrée le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "revue"
+        ordering = ["-date", "-date_creation"]
+
+    def __str__(self):
+        return f"Revue du {self.date:%d/%m/%Y}"
+
+    def delete(self, *args, **kwargs):
+        """Règle 1 : une revue est un journal historique, elle ne
+        disparaît jamais."""
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied(
+            "Une revue ne se supprime pas : c'est le journal "
+            "historique de l'équipe (règle 1)."
+        )
+
+
+class ChangementSatisfaction(models.Model):
+    """Une décision de satisfaction prise en revue (règle 3) :
+    ancienne valeur, nouvelle valeur — le journal historique du poste.
+    Ancienne vide = première décision du poste."""
+
+    revue = models.ForeignKey(
+        Revue,
+        verbose_name="revue",
+        on_delete=models.PROTECT,
+        related_name="changements",
+    )
+    poste = models.ForeignKey(
+        Poste,
+        verbose_name="poste",
+        on_delete=models.PROTECT,
+        related_name="changements_satisfaction",
+    )
+    ancienne = models.ForeignKey(
+        ValeurSatisfaction,
+        verbose_name="ancienne valeur",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="changements_depuis",
+    )
+    nouvelle = models.ForeignKey(
+        ValeurSatisfaction,
+        verbose_name="nouvelle valeur",
+        on_delete=models.PROTECT,
+        related_name="changements_vers",
+    )
+    quand = models.DateTimeField("le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "changement de satisfaction"
+        verbose_name_plural = "changements de satisfaction"
+        ordering = ["-quand"]
+
+    def __str__(self):
+        ancienne = str(self.ancienne) if self.ancienne else "à décider"
+        return f"{self.poste} : {ancienne} → {self.nouvelle} ({self.revue})"
+
+    def delete(self, *args, **kwargs):
+        """Le journal est le journal : une décision consignée ne
+        s'efface pas."""
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied(
+            "Un changement de satisfaction ne se supprime pas : le "
+            "journal historique est immuable."
         )

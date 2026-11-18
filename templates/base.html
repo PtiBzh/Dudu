@@ -14,7 +14,7 @@
     <a href="{% url 'home' %}" {% if section == "accueil" %}aria-current="page"{% endif %}>Accueil</a>
     <a href="{% url 'postes' %}" {% if section == "postes" %}aria-current="page"{% endif %}>Postes</a>
     <a href="{% url 'actions' %}" {% if section == "actions" %}aria-current="page"{% endif %}>Actions</a>
-    <span class="avenir" title="Jalon M4">Revues</span>
+    <a href="{% url 'revues' %}" {% if section == "revues" %}aria-current="page"{% endif %}>Revues</a>
     <a href="{% url 'carte' %}" {% if section == "carte" %}aria-current="page"{% endif %}>Carte</a>
     <span class="espace"></span>
     {% if user.is_authenticated %}

@@ -1,10 +1,10 @@
-"""Formulaires de Dudu — M1 : postes · M2 : actions · M3 : carte.
+"""Formulaires de Dudu — M1 : postes · M2 : actions · M3 : carte ·
+M4 : revues.
 
-Le champ satisfaction est volontairement absent (règle 3 : seule
-une revue collégiale l'assigne — M4). Depuis M3, la position du poste
-se choisit d'un clic sur la mini-carte du formulaire : les champs
-cachés latitude/longitude sont alimentés par le script de carte, et le
-nettoyage refuse un poste non positionné.
+Le champ satisfaction est absent du formulaire de poste (règle 3 :
+seule une revue collégiale l'assigne — un ChangementSatisfaction est
+créé par la vue de revue). Depuis M3, la position du poste se choisit
+d'un clic sur la mini-carte.
 
 Côté actions : responsable et échéance obligatoires dès la création
 (règle 2), motif obligatoire pour abandonner (règle 1). La position
@@ -12,8 +12,9 @@ d'une action est optionnelle (elle hérite du poste).
 """
 from django import forms
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-from .models import Action, Poste, Utilisateur
+from .models import Action, Poste, Revue, Utilisateur
 
 
 class PosteForm(forms.ModelForm):
@@ -139,3 +140,25 @@ class ActionModificationForm(ActionCreationForm):
                 "Un motif est obligatoire pour abandonner une action.",
             )
         return donnees
+
+
+class RevueForm(forms.ModelForm):
+    """Création/édition d'une revue : date, participants, compte
+    rendu. Les postes examinés se choisissent sur la page de la revue
+    — c'est là que se prennent et se consignent les décisions."""
+
+    class Meta:
+        model = Revue
+        fields = ["date", "participants", "compte_rendu"]
+        widgets = {
+            "date": forms.DateInput(attrs={"type": "date"}),
+            "participants": forms.CheckboxSelectMultiple,
+            "compte_rendu": forms.Textarea(attrs={"rows": 6}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["participants"].queryset = (
+            Utilisateur.objects.filter(is_active=True)
+        )
+        self.fields["date"].initial = timezone.localdate

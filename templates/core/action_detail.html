@@ -9,7 +9,11 @@
   <p class="apercu">
     Pour le poste <a href="{% url 'poste_detail' action.poste.pk %}">{{ action.poste.nom }}</a>
   </p>
-  <p><span class="chip hors-revue" title="Les revues arrivent au jalon M4">hors revue — à inscrire à la prochaine revue</span></p>
+  {% if action.revue %}
+  <p><span class="chip">décidée collégialement — <a href="{% url 'revue_detail' action.revue.pk %}">revue du {{ action.revue.date|date:"j F Y" }}</a></span></p>
+  {% else %}
+  <p><span class="chip hors-revue">hors revue — à inscrire à la prochaine revue</span></p>
+  {% endif %}
 
   {% if action.description %}
   <p>{{ action.description|linebreaks }}</p>

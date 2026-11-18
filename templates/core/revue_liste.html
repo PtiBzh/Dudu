@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titre %}Revues{% endblock %}
+{% block contenu %}
+<section>
+  <div class="entete-liste">
+    <h1>Revues</h1>
+    <a class="bouton" href="{% url 'revue_creer' %}">Nouvelle revue</a>
+  </div>
+  <p class="apercu">Journal historique des choix de l'équipe : chaque
+  statut de satisfaction se décide ici, chaque décision est consignée.</p>
+
+  {% if revues %}
+  <table class="table">
+    <thead>
+      <tr><th>Revue</th><th>Participants</th><th>Postes examinés</th><th>Décisions</th><th>Actions créées</th></tr>
+    </thead>
+    <tbody>
+      {% for revue in revues %}
+      <tr>
+        <td><a href="{% url 'revue_detail' revue.pk %}">{{ revue.date|date:"j F Y" }}</a></td>
+        <td>
+          {% for participant in revue.participants.all %}
+            {{ participant.get_full_name|default:participant.username }}{% if not forloop.last %} · {% endif %}
+          {% empty %}—{% endfor %}
+        </td>
+        <td>{{ revue.postes.count }}</td>
+        <td>{{ revue.changements.count }}</td>
+        <td>{{ revue.actions.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="apercu">Aucune revue pour l'instant. Ouvre la première
+  après une réunion d'équipe : date, participants, et les décisions
+  s'y consignent au fur et à mesure.</p>
+  {% endif %}
+</section>
+{% endblock %}

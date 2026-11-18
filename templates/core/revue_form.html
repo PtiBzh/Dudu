@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titre %}{{ titre }}{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <h1>{{ titre }}</h1>
+  <p class="apercu">{% if revue %}Revue du {{ revue.date|date:"j F Y" }} —
+  date, participants et compte rendu. Les postes examinés se gèrent
+  sur la page de la revue.{% else %}Date et participants de la
+  réunion ; les postes examinés et les décisions se gèrent ensuite
+  sur la page de la revue.{% endif %}</p>
+
+  {% if form.non_field_errors %}
+  <ul class="erreur">
+    {% for erreur in form.non_field_errors %}<li>{{ erreur }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% for champ in form.visible_fields %}
+    <p {% if champ.errors %}class="champ-erreur"{% endif %}>
+      <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+      {{ champ }}
+      {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+    </p>
+    {% endfor %}
+    <button type="submit">Enregistrer</button>
+    <a class="lien-retour" href="{% if revue %}{% url 'revue_detail' revue.pk %}{% else %}{% url 'revues' %}{% endif %}">Annuler</a>
+  </form>
+</section>
+{% endblock %}

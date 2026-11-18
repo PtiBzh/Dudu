@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block titre %}Revue du {{ revue.date|date:"j F Y" }}{% endblock %}
+{% block contenu %}
+<section>
+  <div class="entete-liste">
+    <h1>Revue du {{ revue.date|date:"j F Y" }}</h1>
+    <a class="bouton discret" href="{% url 'revue_modifier' revue.pk %}">Modifier</a>
+  </div>
+  <p class="apercu">
+    {% if revue.participants.count %}
+      Participants :
+      {% for participant in revue.participants.all %}
+        {{ participant.get_full_name|default:participant.username }}{% if not forloop.last %} · {% endif %}
+      {% endfor %}
+    {% else %}Aucun participant enregistré.{% endif %}
+  </p>
+
+  <h2>Postes examinés</h2>
+  {% if postes_disponibles %}
+  <form class="ligne" method="post" action="{% url 'revue_poste_ajouter' revue.pk %}">
+    {% csrf_token %}
+    <label for="poste-examine">Ajouter un poste</label>
+    <select id="poste-examine" name="poste">
+      {% for poste in postes_disponibles %}
+        <option value="{{ poste.pk }}">{{ poste.nom }}</option>
+      {% endfor %}
+    </select>
+    <button class="bouton discret" type="submit">Ajouter</button>
+  </form>
+  {% endif %}
+
+  {% if postes_examines %}
+  <table class="table">
+    <thead>
+      <tr><th>Poste</th><th>Satisfaction actuelle</th><th>Décision collégiale</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for poste in postes_examines %}
+      <tr id="poste-{{ poste.pk }}">
+        <td><a href="{% url 'poste_detail' poste.pk %}">{{ poste.nom }}</a></td>
+        <td>
+          {% if poste.satisfaction %}
+            <span class="chip" style="background: {{ poste.satisfaction.couleur }}">{{ poste.satisfaction.libelle }}</span>
+          {% else %}<span class="apercu">à décider</span>{% endif %}
+        </td>
+        <td>
+          <form class="ligne" method="post"
+                action="{% url 'revue_satisfaction' revue.pk poste.pk %}">
+            {% csrf_token %}
+            <select name="satisfaction">
+              {% for s in satisfactions %}
+                <option value="{{ s.pk }}" {% if poste.satisfaction_id == s.pk %}selected{% endif %}>{{ s.libelle }}</option>
+              {% endfor %}
+            </select>
+            <button class="bouton discret" type="submit">Décider</button>
+          </form>
+        </td>
+        <td class="ligne">
+          <a class="lien-retour" href="{% url 'action_creer' poste.pk %}?revue={{ revue.pk }}">Nouvelle action</a>
+          <form class="ligne" method="post"
+                action="{% url 'revue_poste_retirer' revue.pk poste.pk %}">
+            {% csrf_token %}
+            <button class="lien" type="submit">Retirer</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="apercu">Aucun poste examiné pour l'instant : ajoute ceux
+  passés en revue, les décisions se prennent poste par poste.</p>
+  {% endif %}
+
+  {% if changements %}
+  <h2>Décisions consignées</h2>
+  <ul class="liste-actions">
+    {% for changement in changements %}
+    <li>
+      <a href="{% url 'poste_detail' changement.poste.pk %}">{{ changement.poste.nom }}</a>
+      : {{ changement.ancienne|default:"à décider" }} → {{ changement.nouvelle }}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if actions %}
+  <h2>Actions créées dans cette revue</h2>
+  <ul class="liste-actions">
+    {% for action in actions %}
+    <li>
+      <a href="{% url 'action_detail' action.pk %}">{{ action.intitule }}</a>
+      <span class="chip statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+      {% if action.en_retard %}<span class="chip retard-chip">en retard</span>{% endif %}
+      <span class="apercu">échéance {{ action.echeance|date:"j F Y" }} · pour {{ action.responsable.get_full_name|default:action.responsable.username }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h2>Compte rendu</h2>
+  {% if revue.compte_rendu %}
+  <p>{{ revue.compte_rendu|linebreaks }}</p>
+  {% else %}
+  <p class="apercu">Compte rendu libre : points notables, décisions de
+  fond, ce qui reste en suspens.</p>
+  <p><a class="lien-retour" href="{% url 'revue_modifier' revue.pk %}">Rédiger le compte rendu</a></p>
+  {% endif %}
+</section>
+{% endblock %}
