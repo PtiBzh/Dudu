@@ -150,7 +150,9 @@ class EditionActionTests(ActionFixture):
         plus_tard = timezone.localdate() + timedelta(days=30)
         self.client.post(
             reverse("action_modifier", args=[action.pk]),
-            self.donnees_action(echeance=plus_tard.isoformat()),
+            self.donnees_action(
+                statut=Action.Statut.A_FAIRE, echeance=plus_tard.isoformat()
+            ),
         )
         action.refresh_from_db()
         self.assertEqual(action.echeance, plus_tard)
@@ -230,7 +232,9 @@ class ListeActionTests(ActionFixture):
             echeance=self.hier.isoformat(),
         )
         reponse = self.client.get(reverse("actions"), {"retard": 1})
-        self.assertContains(reponse, "Réparer l'anse de remorquage")
+        # NB : l'apostrophe est échappée en &#x27; dans le HTML,
+        # on recherche donc sans elle.
+        self.assertContains(reponse, "anse de remorquage")
         self.assertContains(reponse, "en retard")
         self.assertNotContains(
             reponse, "Sortir les planches sans se cogner la tête"
