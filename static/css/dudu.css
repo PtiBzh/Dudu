@@ -1,0 +1,100 @@
+/* Dudu — feuille de style du socle M0.
+   Volontairement minimal : pas de framework, pas de build. */
+
+:root {
+  --encre: #1c2733;
+  --papier: #f7f5f1;
+  --accent: #0d6b7c;
+  --clair: #ffffff;
+  --gris: #6b7684;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--encre);
+  background: var(--papier);
+}
+
+main {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+h1 { font-size: 1.6rem; }
+
+/* Barre de navigation */
+.barre {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  background: var(--clair);
+  border-bottom: 1px solid #ddd;
+}
+
+.barre a {
+  color: var(--encre);
+  text-decoration: none;
+}
+
+.barre a.marque {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.barre a[aria-current="page"] { font-weight: 600; }
+
+.barre .espace { flex: 1; }
+.barre .qui { color: var(--gris); }
+.barre .avenir { color: #b6bec7; cursor: default; }
+
+.badge {
+  background: var(--accent);
+  color: var(--clair);
+  border-radius: 1rem;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.ligne { display: inline; }
+
+button.lien {
+  background: none;
+  border: none;
+  color: var(--gris);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+/* Boîtes */
+.boite {
+  background: var(--clair);
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  max-width: 24rem;
+  margin: 2rem auto;
+}
+
+.apercu { color: var(--gris); }
+
+.erreur { color: #b3261e; }
+
+/* Messages Django */
+.messages {
+  list-style: none;
+  padding: 0;
+}
+
+.messages li {
+  background: var(--clair);
+  border: 1px solid var(--accent);
+  border-radius: 0.4rem;
+  padding: 0.6rem 1rem;
+  margin: 0.5rem 0;
+}

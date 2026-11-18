@@ -1,0 +1,38 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titre %}Accueil{% endblock %} · Dudu</title>
+  <link rel="stylesheet" href="{% static 'css/dudu.css' %}">
+</head>
+<body>
+<header>
+  <nav class="barre">
+    <a class="marque" href="{% url 'home' %}">Dudu</a>
+    <a href="{% url 'home' %}" {% if section == "accueil" %}aria-current="page"{% endif %}>Accueil</a>
+    <span class="avenir" title="Jalon M1">Postes</span>
+    <span class="avenir" title="Jalon M2">Actions</span>
+    <span class="avenir" title="Jalon M4">Revues</span>
+    <span class="avenir" title="Jalon M3">Carte</span>
+    <span class="espace"></span>
+    {% if user.is_authenticated %}
+      <span class="qui">{{ user.get_full_name|default:user.username }}</span>
+      {% if user.is_animateur %}<span class="badge">animateur</span>{% endif %}
+      <form class="ligne" method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="lien" type="submit">Déconnexion</button>
+      </form>
+    {% endif %}
+  </nav>
+</header>
+<main>
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  {% block contenu %}{% endblock %}
+</main>
+</body>
+</html>

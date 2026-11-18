@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Données locales
+db.sqlite3
+/media/
+/staticfiles/
+
+# Éditeurs / OS
+*.save
+.DS_Store
