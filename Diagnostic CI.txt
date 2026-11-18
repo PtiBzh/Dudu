@@ -1,27 +1,28 @@
 Creating test database for alias 'default'...
-E/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
   mw_instance = middleware(adapted_handler)
-.....................
+............F.......F......................
 ======================================================================
-ERROR: core.test_actions (unittest.loader._FailedTest.core.test_actions)
+FAIL: test_l_echeance_peut_etre_decalee (core.test_actions.EditionActionTests.test_l_echeance_peut_etre_decalee)
 ----------------------------------------------------------------------
-ImportError: Failed to import test module: core.test_actions
 Traceback (most recent call last):
-  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/unittest/loader.py", line 396, in _find_test_path
-    module = self._get_module_from_name(name)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/unittest/loader.py", line 339, in _get_module_from_name
-    __import__(name)
-  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 19, in <module>
-    class ActionFixture(TestCase):
-                        ^^^^^^^^
-NameError: name 'TestCase' is not defined
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 156, in test_l_echeance_peut_etre_decalee
+    self.assertEqual(action.echeance, plus_tard)
+AssertionError: datetime.date(2026, 11, 25) != datetime.date(2026, 12, 18)
 
+======================================================================
+FAIL: test_retards_en_evidence (core.test_actions.ListeActionTests.test_retards_en_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 233, in test_retards_en_evidence
+    self.assertContains(reponse, "Réparer l'anse de remorquage")
+AssertionError: False is not true : Couldn't find 'Réparer l'anse de remorquage' in the following response
+b'<!DOCTYPE html>\n<html lang="fr">\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>Actions \xc2\xb7 Dudu</title>\n  <link rel="stylesheet" href="/static/css/dudu.css">\n</head>\n<body>\n<header>\n  <nav class="barre">\n    <a class="marque" href="/">Dudu</a>\n    <a href="/" >Accueil</a>\n    <a href="/postes/" >Postes</a>\n    <a href="/actions/" aria-current="page">Actions</a>\n    <span class="avenir" title="Jalon M4">Revues</span>\n    <span class="avenir" title="Jalon M3">Carte</span>\n    <span class="espace"></span>\n    \n      <span class="qui">lea</span>\n      <span class="badge">animateur</span>\n      <form class="ligne" method="post" action="/deconnexion/">\n        <input type="hidden" name="csrfmiddlewaretoken" value="KhjghvLcLlFdNCCZN1lZWY4Dksh3Mtrs1jnXVx1os8ezrfitzcJ9CygETfat1JOn">\n        <button class="lien" type="submit">D\xc3\xa9connexion</button>\n      </form>\n    \n  </nav>\n</header>\n<main>\n  \n  \n<section>\n  <div class="entete-liste">\n    <h1>Actions</h1>\n  </div>\n\n  <form class="filtres" method="get" action="/actions/">\n    <input type="text" name="q" placeholder="Rechercher\xe2\x80\xa6"\n           value="">\n    <select name="statut">\n      <option value="ouvertes" selected>Ouvertes (\xc3\xa0 faire, en cours)</option>\n      \n        <option value="a_faire" >\xc3\x80 faire</option>\n      \n        <option value="en_cours" >En cours</option>\n      \n        <option value="faite" >Faite</option>\n      \n        <option value="abandonnee" >Abandonn\xc3\xa9e</option>\n      \n      <option value="toutes" >Toutes</option>\n    </select>\n    <select name="responsable">\n      <option value="">Responsable : toute l\'\xc3\xa9quipe</option>\n      \n        <option value="1" >alice</option>\n      \n        <option value="2" >lea</option>\n      \n    </select>\n    <label class="retard-case">\n      <input type="checkbox" name="retard" value="1" checked>\n      en retard seulement\n    </label>\n    <button type="submit">Filtrer</button>\n  </form>\n\n  \n  <table class="table">\n    <thead>\n      <tr><th>Action</th><th>Poste</th><th>Responsable</th><th>\xc3\x89ch\xc3\xa9ance</th><th>Statut</th></tr>\n    </thead>\n    <tbody>\n      \n      <tr class="en-retard">\n        <td>\n          <a href="/actions/2/">R\xc3\xa9parer l&#x27;anse de remorquage</a>\n          <span class="chip retard-chip">en retard</span>\n        </td>\n        <td><a href="/postes/1/">Manutention remorque planches</a></td>\n        <td>alice</td>\n        <td>17 novembre 2026</td>\n        <td><span class="chip statut-a_faire">\xc3\x80 faire</span></td>\n      </tr>\n      \n    </tbody>\n  </table>\n  \n</section>\n\n</main>\n</body>\n</html>\n'
 
 ----------------------------------------------------------------------
-Ran 22 tests in 5.804s
+Ran 43 tests in 22.899s
 
-FAILED (errors=1)
+FAILED (failures=2)
 Destroying test database for alias 'default'...
-Found 22 test(s).
+Found 43 test(s).
 System check identified no issues (0 silenced).
