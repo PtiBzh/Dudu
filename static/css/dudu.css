@@ -380,3 +380,14 @@ figure { margin: 0; }
 #reglette-opacite { vertical-align: middle; }
 
 .table .badge { white-space: nowrap; }
+
+/* Équipe & paramètres (M8) --------------------------------------------------- */
+
+.pastille-couleur {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--bord);
+  border-radius: 50%;
+  vertical-align: -2px;
+}
