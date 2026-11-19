@@ -1,71 +1,77 @@
 {% extends "base.html" %}
 {% block titre %}Paramètres{% endblock %}
 {% block contenu %}
-<section class="boite large">
+<section>
   <h1>Paramètres du club</h1>
   <p class="apercu">Les listes qui structurent les postes et la carte.
   Une valeur citée par des postes ou des revues ne disparaît jamais ;
   l'ordre d'affichage guide les formulaires.</p>
 
-  {% for liste in listes %}
-  <h2>{{ liste.titre }}</h2>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>{% if liste.slug == "lieux" %}Nom{% else %}Libellé{% endif %}</th>
-        {% if liste.avec_couleur %}<th>Couleur</th>{% endif %}
-        <th>Ordre</th>
-        <th>Usage</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for valeur in liste.valeurs %}
-      <tr>
-        <td>{{ valeur }}</td>
-        {% if liste.avec_couleur %}
-        <td>
-          <span class="pastille-couleur" style="background: {{ valeur.couleur }}"></span>
-          <code>{{ valeur.couleur }}</code>
-        </td>
-        {% endif %}
-        <td>{{ valeur.ordre }}</td>
-        <td>{{ valeur.postes.count }} poste{{ valeur.postes.count|pluralize }}</td>
-        <td class="ligne">
-          <a href="{% url 'parametres_valeur_modifier' liste.slug valeur.pk %}">Modifier</a>
-          <form method="post" action="{% url 'parametres_valeur_supprimer' liste.slug valeur.pk %}">
-            {% csrf_token %}
-            <button class="lien" type="submit">Retirer</button>
-          </form>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5"><span class="apercu">Aucune valeur pour l'instant.</span></td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="grille-parametres">
+    {% for liste in listes %}
+    <article class="carte-param">
+      <h2>{{ liste.titre }}</h2>
+      <ul class="liste-valeurs">
+        {% for valeur in liste.valeurs %}
+        <li class="ligne-valeur">
+          {% if liste.avec_couleur %}
+          <span class="pastille-couleur" style="background: {{ valeur.couleur }}" title="{{ valeur.couleur }}"></span>
+          {% endif %}
+          <span class="nom">{{ valeur }}</span>
+          <span class="ordre-valeur" title="Ordre d'affichage">n° {{ valeur.ordre }}</span>
+          {% if valeur.postes.count %}
+          <span class="chip chip-usage">{{ valeur.postes.count }} poste{{ valeur.postes.count|pluralize }}</span>
+          {% else %}
+          <span class="chip chip-usage libre" title="Aucun poste ne l'utilise">libre</span>
+          {% endif %}
+          <span class="actions-ligne">
+            <a href="{% url 'parametres_valeur_modifier' liste.slug valeur.pk %}">Modifier</a>
+            <form method="post" action="{% url 'parametres_valeur_supprimer' liste.slug valeur.pk %}"
+                  onsubmit="return confirm('Retirer « {{ valeur|escapejs }} » ?')">
+              {% csrf_token %}
+              <button class="lien danger" type="submit">Retirer</button>
+            </form>
+          </span>
+        </li>
+        {% empty %}
+        <li><span class="apercu">Aucune valeur pour l'instant.</span></li>
+        {% endfor %}
+      </ul>
 
-  <form class="ligne" method="post" action="{% url 'parametres_valeur_ajouter' liste.slug %}">
-    {% csrf_token %}
-    {% for champ in liste.form.visible_fields %}
-    <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
-    {{ champ }}
+      <form method="post" action="{% url 'parametres_valeur_ajouter' liste.slug %}">
+        {% csrf_token %}
+        <div class="zone-ajout">
+          {% for champ in liste.form.visible_fields %}
+          <span class="minerale">
+            <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+            {{ champ }}
+            {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+          </span>
+          {% endfor %}
+          <button class="bouton discret" type="submit">Ajouter</button>
+        </div>
+      </form>
+    </article>
     {% endfor %}
-    <button class="bouton discret" type="submit">Ajouter</button>
-  </form>
-  {% endfor %}
 
-  <h2>Carte</h2>
-  <p class="apercu">Centre et zoom initiaux de toutes les cartes du club
-  (grande carte, mini-cartes de saisie, éditeurs de plans).</p>
-  <form class="ligne" method="post" action="{% url 'parametres_carte' %}">
-    {% csrf_token %}
-    {% for champ in form_reglages.visible_fields %}
-    <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
-    {{ champ }}
-    {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
-    {% endfor %}
-    <button class="bouton discret" type="submit">Enregistrer</button>
-  </form>
+    <article class="carte-param entiere">
+      <h2>Carte</h2>
+      <p class="apercu">Centre et zoom initiaux de toutes les cartes du club
+      (grande carte, mini-cartes de saisie, éditeurs de plans).</p>
+      <form method="post" action="{% url 'parametres_carte' %}">
+        {% csrf_token %}
+        <div class="zone-ajout">
+          {% for champ in form_reglages.visible_fields %}
+          <span class="minerale">
+            <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+            {{ champ }}
+            {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+          </span>
+          {% endfor %}
+          <button class="bouton" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </article>
+  </div>
 </section>
 {% endblock %}

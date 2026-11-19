@@ -305,7 +305,10 @@ class ValeurCotationForm(forms.ModelForm):
 
     class Meta:
         fields = ["libelle", "ordre", "couleur"]
-        widgets = {"couleur": forms.TextInput(attrs={"placeholder": "#0d6b7c"})}
+        widgets = {
+            "couleur": forms.ColorInput(attrs={"title": "Couleur du marqueur sur la carte"}),
+            "ordre": forms.NumberInput(attrs={"min": 0}),
+        }
 
 
 class ValeurGraviteForm(ValeurCotationForm):
@@ -329,6 +332,13 @@ class ReglagesForm(forms.ModelForm):
     class Meta:
         model = Reglages
         fields = ["centre_latitude", "centre_longitude", "zoom_carte"]
+        # step="any" : sans ça, la validation HTML5 des champs number
+        # bloque les décimales (latitude type 47,797593) côté navigateur.
+        widgets = {
+            "centre_latitude": forms.NumberInput(attrs={"step": "any", "min": -90, "max": 90}),
+            "centre_longitude": forms.NumberInput(attrs={"step": "any", "min": -180, "max": 180}),
+            "zoom_carte": forms.NumberInput(attrs={"min": 2, "max": 19}),
+        }
 
     def clean_centre_latitude(self):
         valeur = self.cleaned_data["centre_latitude"]
