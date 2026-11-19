@@ -19,6 +19,10 @@
     {% if user.is_staff %}
       <a href="{% url 'plans' %}" {% if section == "plans" %}aria-current="page"{% endif %}>Plans</a>
     {% endif %}
+    {% if user.is_animateur %}
+      <a href="{% url 'equipe' %}" {% if section == "equipe" %}aria-current="page"{% endif %}>Équipe</a>
+      <a href="{% url 'parametres' %}" {% if section == "parametres" %}aria-current="page"{% endif %}>Paramètres</a>
+    {% endif %}
     <span class="espace"></span>
     {% if user.is_authenticated %}
       <span class="qui">{{ user.get_full_name|default:user.username }}</span>

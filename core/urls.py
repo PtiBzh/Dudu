@@ -63,4 +63,28 @@ urlpatterns = [
         views.plan_supprimer,
         name="plan_supprimer",
     ),
+    path("equipe/", views.equipe, name="equipe"),
+    path("equipe/nouveau/", views.equipe_creer, name="equipe_creer"),
+    path(
+        "equipe/<int:pk>/modifier/",
+        views.equipe_modifier,
+        name="equipe_modifier",
+    ),
+    path("parametres/", views.parametres, name="parametres"),
+    path("parametres/carte/", views.parametres_carte, name="parametres_carte"),
+    path(
+        "parametres/<slug:liste>/ajouter/",
+        views.parametres_valeur_ajouter,
+        name="parametres_valeur_ajouter",
+    ),
+    path(
+        "parametres/<slug:liste>/<int:pk>/modifier/",
+        views.parametres_valeur_modifier,
+        name="parametres_valeur_modifier",
+    ),
+    path(
+        "parametres/<slug:liste>/<int:pk>/supprimer/",
+        views.parametres_valeur_supprimer,
+        name="parametres_valeur_supprimer",
+    ),
 ]
