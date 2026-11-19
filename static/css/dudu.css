@@ -575,3 +575,65 @@ figure { margin: 0; }
 .zone-ajout .minerale input { width: auto; }
 
 .zone-ajout .bouton { margin-left: auto; }
+
+/* M9 — revue guidée : sélection en bloc puis passage un par un. */
+.selection-liste {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.selection-ligne {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--bord);
+  border-radius: 0.6rem;
+  background: var(--clair);
+  cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+.selection-ligne:hover { border-color: var(--accent); }
+.selection-ligne:has(input:checked) {
+  border-color: var(--accent-fonce);
+  background: var(--accent-clair);
+}
+.selection-ligne input[type="checkbox"] {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+  accent-color: var(--accent-fonce);
+}
+.selection-ligne .nom { flex: 1; font-weight: 600; }
+
+.passage-progres {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-clair);
+  color: var(--accent-fonce);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.passage-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  bottom: 1rem;
+  margin-top: 1.75rem;
+  padding: 0.8rem 1rem;
+  background: var(--clair);
+  border: 1px solid var(--bord);
+  border-radius: 0.75rem;
+  box-shadow: var(--ombre-franche);
+}
+.bouton.vert { background: var(--vert); color: var(--clair); }
+.bouton.vert:hover { background: #235d26; }
