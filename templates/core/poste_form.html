@@ -32,8 +32,8 @@
     <div class="groupe-champ">
       <label>Position sur la carte <span class="obligatoire">obligatoire</span></label>
       <div id="mini-carte" class="mini-carte"
-           data-lat="{{ poste.latitude|default:centre.0 }}"
-           data-lng="{{ poste.longitude|default:centre.1 }}"
+           data-lat="{{ poste_lat|default:centre.0 }}"
+           data-lng="{{ poste_lng|default:centre.1 }}"
            data-zoom="{{ zoom }}"></div>
       <span id="position-choisie" class="apercu">Clique sur la carte pour
       placer le poste, ou glisse le marqueur pour l'ajuster.</span>
