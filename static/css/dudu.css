@@ -97,14 +97,17 @@ a:hover { color: var(--accent-fonce); }
 /* Cellules et formulaires d'actions : sur une même ligne, centrés
    verticalement — liens, boutons et sélecteurs de hauteurs
    différentes s'alignent avec leur ligne de tableau, pas sur
-   leurs pointes de baselines. */
+   leurs pointes de baselines.
+   nowrap : sans lui, une colonne un peu étroite renvoie le
+   formulaire sous le lien (revue : « Nouvelle action » puis
+   « Retirer » l'un sur l'autre) ; la colonne s'élargit plutôt. */
 form.ligne {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   vertical-align: middle;
 }
-td.ligne { text-align: right; }
+td.ligne { text-align: right; white-space: nowrap; }
 td.ligne > a {
   display: inline-flex;
   align-items: center;
