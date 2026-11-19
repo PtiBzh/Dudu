@@ -112,6 +112,12 @@ def centre_decimaux():
     )
 
 
+def plans_pour_cartes():
+    """Plans de bâtiments sérialisés pour toutes les cartes : la grande
+    (M3) et les mini-cartes de saisie (M6 sous le marqueur)."""
+    return [plan.donnees_carte() for plan in PlanBatiment.objects.all()]
+
+
 @login_required
 def carte(request):
     """Carte des postes et actions (M3) — mêmes filtres que la liste.
@@ -181,7 +187,7 @@ def carte(request):
             }
             for action in actions_visibles
         ],
-        "plans": [plan.donnees_carte() for plan in PlanBatiment.objects.all()],
+        "plans": plans_pour_cartes(),
     }
     context = {
         "section": "carte",
@@ -289,6 +295,7 @@ def poste_creer(request):
             "titre": "Nouveau poste",
             "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
+            "plans": plans_pour_cartes(),
         },
     )
 
@@ -315,6 +322,7 @@ def poste_modifier(request, pk):
             "poste_lng": dec6(poste.longitude),
             "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
+            "plans": plans_pour_cartes(),
         },
     )
 
@@ -440,6 +448,7 @@ def action_creer(request, poste_pk):
             "revue": revue,
             "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
+            "plans": plans_pour_cartes(),
         },
     )
 
@@ -483,6 +492,7 @@ def action_modifier(request, pk):
             "poste_lng": dec6(action.poste.longitude),
             "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
+            "plans": plans_pour_cartes(),
         },
     )
 
