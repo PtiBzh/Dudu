@@ -10,6 +10,7 @@
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -286,3 +287,102 @@ class CompteurAccueilTests(ActionFixture):
         reponse = self.client.get(reverse("home"))
         self.assertContains(reponse, "actions ouvertes")
         self.assertContains(reponse, "actions en retard")
+
+
+class StatutRapideTests(ActionFixture):
+    """Le statut se change en un clic depuis la fiche : démarrer,
+    clôturer, remettre à faire, rouvrir. L'abandon reste l'affaire du
+    formulaire complet — il exige son motif. Le tiers de passage n'a
+    pas le bouton, ni le droit."""
+
+    def clic(self, action, statut, **kwargs):
+        return self.client.post(
+            reverse("action_statut", args=[action.pk, statut]), {}, **kwargs
+        )
+
+    def test_demarrer_passe_en_cours(self):
+        action = self.creer_action()
+        reponse = self.clic(action, "en_cours")
+        self.assertRedirects(
+            reponse, reverse("action_detail", args=[action.pk])
+        )
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.EN_COURS)
+
+    def test_cloturer_date_la_cloture(self):
+        action = self.creer_action()
+        self.clic(action, "faite")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.FAITE)
+        self.assertIsNotNone(action.date_cloture)
+
+    def test_cloturer_sans_photo_avertit_sans_bloquer(self):
+        action = self.creer_action()
+        reponse = self.clic(action, "faite", follow=True)
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.FAITE)
+        self.assertContains(reponse, "sans photo « après »")
+
+    def test_rouvrir_efface_la_date_de_cloture(self):
+        """La clôture se date, la réouverture l'efface : c'est ce qui
+        alimente les revues, le raccourci suit la même règle."""
+        action = self.creer_action()
+        self.clic(action, "faite")
+        self.clic(action, "rouvrir")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.A_FAIRE)
+        self.assertIsNone(action.date_cloture)
+
+    def test_remettre_a_faire_depuis_en_cours(self):
+        action = self.creer_action()
+        self.clic(action, "en_cours")
+        self.clic(action, "rouvrir")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.A_FAIRE)
+
+    def test_le_responsable_a_le_droit_aussi(self):
+        """Le responsable n'est pas animateur : le raccourci est
+        à lui quand même (peut_etre_modifiee_par)."""
+        action = self.creer_action()
+        self.client.login(username="alice", password="mot de passe-123")
+        reponse = self.clic(action, "en_cours")
+        self.assertEqual(reponse.status_code, 302)
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.EN_COURS)
+
+    def test_le_tiers_est_refuse(self):
+        action = self.creer_action()
+        Utilisateur.objects.create_user("bob", password="mot de passe-123")
+        self.client.login(username="bob", password="mot de passe-123")
+        with self.assertRaises(PermissionDenied):
+            self.clic(action, "faite")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.A_FAIRE)
+
+    def test_abandonnee_n_a_pas_de_raccourci(self):
+        """Abandonner exige un motif : ça passe par le formulaire,
+        et une action abandonnée ne se rouvre pas d'un clic."""
+        action = self.creer_action()
+        action.statut = Action.Statut.ABANDONNEE
+        action.motif_abandon = "Devenu inutile : la remorque est partie."
+        action.save()
+        with self.assertRaises(Http404):
+            self.clic(action, "rouvrir")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.ABANDONNEE)
+
+    def test_statut_fantasque_refuse(self):
+        action = self.creer_action()
+        with self.assertRaises(Http404):
+            self.clic(action, "perdjusque")
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.A_FAIRE)
+
+    def test_get_sans_effet(self):
+        action = self.creer_action()
+        reponse = self.client.get(
+            reverse("action_statut", args=[action.pk, "en_cours"])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        action.refresh_from_db()
+        self.assertEqual(action.statut, Action.Statut.A_FAIRE)
