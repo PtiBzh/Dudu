@@ -1080,6 +1080,15 @@ def plan_dessin(request, pk):
         latitude, longitude = centre_de_coins(plan.forme["coordinates"][0])
         donnees_dessin["lat"] = latitude
         donnees_dessin["lng"] = longitude
+    # Bâtiments déjà en place : repères sous le tracé, pour situer le
+    # nouveau plan parmi les autres sans jouer aux devinettes. Le
+    # plan en cours s'affiche à part (relecture), les inachevés
+    # n'ont rien à montrer.
+    autres_plans = [
+        autre.donnees_carte()
+        for autre in PlanBatiment.objects.exclude(pk=plan.pk)
+        if autre.est_complet()
+    ]
     return render(
         request,
         "core/plan_dessin.html",
@@ -1087,6 +1096,7 @@ def plan_dessin(request, pk):
             "section": "plans",
             "plan": plan,
             "donnees_dessin": donnees_dessin,
+            "plans": autres_plans,
         },
     )
 

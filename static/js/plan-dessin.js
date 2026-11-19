@@ -44,6 +44,18 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   carte.on("load", function () {
+    /* Bâtiments déjà tracés ou calés : repères discrets sous le
+     * nouveau tracé — on ne dessine pas dans le vide. Pas de popup :
+     * pendant le tracé, le clic pose un sommet, on ne lui vole pas. */
+    var noeudPlans = document.getElementById("donnees-plans");
+    if (noeudPlans !== null && typeof window.DUDU_AJOUTER_PLANS === "function") {
+      window.DUDU_AJOUTER_PLANS(
+        carte,
+        JSON.parse(noeudPlans.textContent),
+        { popup: false }
+      );
+    }
+
     /* Relecture : la forme enregistrée sert de repère pendant le
      * nouveau tracé. */
     if (donnees.forme) {

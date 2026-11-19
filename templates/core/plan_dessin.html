@@ -11,7 +11,8 @@
   <p class="apercu">Clique sur « Tracer » puis sur chaque sommet du
   bâtiment ; revisite le premier point pour fermer le polygone. La
   forme enregistrée s'affiche en relecture : un nouveau tracé
-  l'écrasera à l'enregistrement.</p>
+  l'écrasera à l'enregistrement. Les autres bâtiments du club
+  apparaissent en repères, avec leur nom.</p>
   <div id="carte" class="boite-carte"></div>
   <div class="barre-outils">
     <button id="tracer" class="bouton" type="button">Tracer le polygone</button>
@@ -24,6 +25,7 @@
   </form>
 </section>
 {{ donnees_dessin|json_script:"donnees-dessin" }}
+{{ plans|json_script:"donnees-plans" }}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'vendor/maplibre-gl.js' %}"></script>
