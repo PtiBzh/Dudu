@@ -18,7 +18,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -1291,23 +1291,39 @@ def equipe_modifier(request, pk):
 
 def _parametres_contexte(form_reglages=None):
     """Contexte commun de la page Paramètres : les quatre listes de
-    valeurs (avec leur formulaire d'ajout) et les réglages de carte."""
+    valeurs (avec leur formulaire d'ajout) et les réglages de carte.
+    Chaque liste porte son prochain ordre (les nouvelles valeurs se
+    rangent à la fin) et le nom du champ texte (les lieux disent
+    « nom », les cotations « libelle »)."""
     classe_form = form_reglages.__class__ if form_reglages else ReglagesForm
-    return {
-        "section": "parametres",
-        "listes": [
+    listes = []
+    for slug, descr in LISTES_VALEURS.items():
+        modele = descr["modele"]
+        prochain = 1 + (
+            modele.objects.aggregate(Max("ordre"))["ordre__max"] or 0
+        )
+        listes.append(
             {
                 "slug": slug,
                 "titre": descr["titre"],
                 "avec_couleur": descr["avec_couleur"],
-                "valeurs": descr["modele"].objects.all(),
+                "valeurs": modele.objects.all(),
                 "form": descr["form"](),
+                "champ_texte": "nom"
+                if slug == "lieux"
+                else "libelle",
+                "prochain_ordre": prochain,
             }
-            for slug, descr in LISTES_VALEURS.items()
-        ],
+        )
+    return {
+        "section": "parametres",
+        "listes": listes,
         "form_reglages": form_reglages or classe_form(
             instance=Reglages.charge()
         ),
+        "plans": plans_pour_cartes(),
+        "centre": centre_decimaux(),
+        "zoom": zoom_courant(),
     }
 
 
@@ -1357,6 +1373,42 @@ def parametres_valeur_ajouter(request, liste):
                 request,
                 "Ajout refusé : vérifie le nom et l'ordre d'affichage.",
             )
+    return redirect("parametres")
+
+
+@login_required
+@animateur_seulement
+def parametres_ordre(request, liste):
+    """Réordonnancement d'une liste au glisser-déposer (POST
+    uniquement) : la liste des identifiants dans l'ordre visé
+    réécrit les rangs 1..n. Identifiants inconnus ou en double :
+    refus franc, rien ne bouge (règle : rien ne disparaît)."""
+    descr = _liste_ou_404(liste)
+    if request.method == "POST":
+        brutes = request.POST.get("ordre", "").split(",")
+        try:
+            pks = [int(morceau) for morceau in brutes if morceau.strip()]
+        except ValueError:
+            pks = None
+        valeurs = (
+            list(descr["modele"].objects.filter(pk__in=pks))
+            if pks
+            else []
+        )
+        if not pks or len(valeurs) != len(pks):
+            messages.error(
+                request,
+                "Réordonnancement refusé : valeurs inconnues ou "
+                "répétées.",
+            )
+            return redirect("parametres")
+        par_pk = {valeur.pk: valeur for valeur in valeurs}
+        for rang, pk in enumerate(pks, start=1):
+            valeur = par_pk[pk]
+            if valeur.ordre != rang:
+                valeur.ordre = rang
+                valeur.save(update_fields=["ordre"])
+        messages.success(request, "Nouvel ordre enregistré.")
     return redirect("parametres")
 
 

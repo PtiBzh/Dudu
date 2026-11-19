@@ -99,6 +99,11 @@ urlpatterns = [
         name="parametres_valeur_ajouter",
     ),
     path(
+        "parametres/<slug:liste>/ordre/",
+        views.parametres_ordre,
+        name="parametres_ordre",
+    ),
+    path(
         "parametres/<slug:liste>/<int:pk>/modifier/",
         views.parametres_valeur_modifier,
         name="parametres_valeur_modifier",

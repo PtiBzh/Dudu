@@ -334,10 +334,28 @@ class ReglagesForm(forms.ModelForm):
         fields = ["centre_latitude", "centre_longitude", "zoom_carte"]
         # step="any" : sans ça, la validation HTML5 des champs number
         # bloque les décimales (latitude type 47,797593) côté navigateur.
+        # Les classes coord-* branchent la mini-carte des Paramètres :
+        # elle écrit la position du marqueur et le zoom dans les champs.
         widgets = {
-            "centre_latitude": forms.NumberInput(attrs={"step": "any", "min": -90, "max": 90}),
-            "centre_longitude": forms.NumberInput(attrs={"step": "any", "min": -180, "max": 180}),
-            "zoom_carte": forms.NumberInput(attrs={"min": 2, "max": 19}),
+            "centre_latitude": forms.NumberInput(
+                attrs={
+                    "step": "any",
+                    "min": -90,
+                    "max": 90,
+                    "class": "coord-lat",
+                }
+            ),
+            "centre_longitude": forms.NumberInput(
+                attrs={
+                    "step": "any",
+                    "min": -180,
+                    "max": 180,
+                    "class": "coord-lng",
+                }
+            ),
+            "zoom_carte": forms.NumberInput(
+                attrs={"min": 2, "max": 19, "class": "coord-zoom"}
+            ),
         }
 
     def clean_centre_latitude(self):
