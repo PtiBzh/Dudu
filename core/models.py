@@ -695,7 +695,9 @@ class Reglages(models.Model):
 
     centre_latitude = models.FloatField("latitude du centre", default=48.42)
     centre_longitude = models.FloatField("longitude du centre", default=-4.55)
-    zoom_carte = models.PositiveSmallIntegerField("zoom de la carte", default=16)
+    # FloatField : le zoom de MapLibre est décimal (la mini-carte des
+    # Paramètres écrit déjà un zoom à une décimale).
+    zoom_carte = models.FloatField("zoom de la carte", default=16)
 
     class Meta:
         verbose_name = "réglages"

@@ -152,4 +152,4 @@ DUDU_CENTRE_CARTE = tuple(
     float(c)
     for c in os.environ.get("DUDU_CENTRE_CARTE", "48.42,-4.55").split(",")
 )
-DUDU_ZOOM_CARTE = int(os.environ.get("DUDU_ZOOM_CARTE", "16"))
+DUDU_ZOOM_CARTE = float(os.environ.get("DUDU_ZOOM_CARTE", "16"))
