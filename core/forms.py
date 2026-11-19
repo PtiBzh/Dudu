@@ -14,7 +14,19 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from .models import Action, Photo, PlanBatiment, Poste, Revue, Utilisateur
+from .models import (
+    Action,
+    Lieu,
+    Photo,
+    PlanBatiment,
+    Poste,
+    Reglages,
+    Revue,
+    Utilisateur,
+    ValeurFrequence,
+    ValeurGravite,
+    ValeurSatisfaction,
+)
 
 
 class PosteForm(forms.ModelForm):
@@ -218,3 +230,120 @@ class PlanForm(forms.ModelForm):
                     "l'orthophoto par ses 4 coins.",
                 )
         return donnees
+
+
+# Équipe (M8) -----------------------------------------------------------------
+
+
+class UtilisateurCreationForm(forms.Form):
+    """Nouveau compte : identifiant, nom, mot de passe saisi une fois
+    (petite équipe ; la personne le change ensuite si besoin)."""
+
+    username = forms.CharField(label="Identifiant", max_length=150)
+    first_name = forms.CharField(label="Prénom", max_length=150, required=False)
+    last_name = forms.CharField(label="Nom", max_length=150, required=False)
+    mot_de_passe = forms.CharField(
+        label="Mot de passe", min_length=8, widget=forms.PasswordInput
+    )
+    is_animateur = forms.BooleanField(
+        label="Animateur (gère l'équipe et les paramètres)", required=False
+    )
+
+    def clean_username(self):
+        identifiant = self.cleaned_data["username"]
+        if Utilisateur.objects.filter(username__iexact=identifiant).exists():
+            raise ValidationError("Cet identifiant est déjà pris.")
+        return identifiant
+
+    def save(self):
+        return Utilisateur.objects.create_user(
+            username=self.cleaned_data["username"],
+            password=self.cleaned_data["mot_de_passe"],
+            first_name=self.cleaned_data["first_name"],
+            last_name=self.cleaned_data["last_name"],
+            is_animateur=self.cleaned_data["is_animateur"],
+        )
+
+
+class UtilisateurModificationForm(forms.ModelForm):
+    """Édition d'un compte : rôle, activation, et un nouveau mot de
+    passe laissé vide pour ne rien changer."""
+
+    nouveau_mot_de_passe = forms.CharField(
+        label="Nouveau mot de passe (vide = inchangé)",
+        min_length=8,
+        required=False,
+        widget=forms.PasswordInput,
+    )
+
+    class Meta:
+        model = Utilisateur
+        fields = ["username", "first_name", "last_name", "is_animateur", "is_active"]
+
+    def save(self, commit=True):
+        utilisateur = super().save(commit=False)
+        mot = self.cleaned_data.get("nouveau_mot_de_passe")
+        if mot:
+            utilisateur.set_password(mot)
+        if commit:
+            utilisateur.save()
+        return utilisateur
+
+
+# Paramètres (M8) --------------------------------------------------------------
+
+
+class LieuForm(forms.ModelForm):
+    class Meta:
+        model = Lieu
+        fields = ["nom", "ordre"]
+
+
+class ValeurCotationForm(forms.ModelForm):
+    """Socle des listes cotées (gravités, fréquences, satisfactions),
+    champs identiques : libellé, ordre, couleur du marqueur carte."""
+
+    class Meta:
+        fields = ["libelle", "ordre", "couleur"]
+        widgets = {"couleur": forms.TextInput(attrs={"placeholder": "#0d6b7c"})}
+
+
+class ValeurGraviteForm(ValeurCotationForm):
+    class Meta(ValeurCotationForm.Meta):
+        model = ValeurGravite
+
+
+class ValeurFrequenceForm(ValeurCotationForm):
+    class Meta(ValeurCotationForm.Meta):
+        model = ValeurFrequence
+
+
+class ValeurSatisfactionForm(ValeurCotationForm):
+    class Meta(ValeurCotationForm.Meta):
+        model = ValeurSatisfaction
+
+
+class ReglagesForm(forms.ModelForm):
+    """Centre et zoom initiaux de la carte du club."""
+
+    class Meta:
+        model = Reglages
+        fields = ["centre_latitude", "centre_longitude", "zoom_carte"]
+
+    def clean_centre_latitude(self):
+        valeur = self.cleaned_data["centre_latitude"]
+        if not -90 <= valeur <= 90:
+            raise ValidationError("La latitude doit rester entre -90 et 90 degrés.")
+        return valeur
+
+    def clean_centre_longitude(self):
+        valeur = self.cleaned_data["centre_longitude"]
+        if not -180 <= valeur <= 180:
+            raise ValidationError("La longitude doit rester entre -180 et 180 degrés.")
+        return valeur
+
+    def clean_zoom_carte(self):
+        valeur = self.cleaned_data["zoom_carte"]
+        if not 2 <= valeur <= 19:
+            raise ValidationError("Le zoom doit rester entre 2 et 19.")
+        return valeur
