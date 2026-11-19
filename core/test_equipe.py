@@ -40,10 +40,11 @@ class AccesTests(EquipeFixture):
 
     def test_navigation_animateur(self):
         self.client.login(username="bob", password="mot de passe-123")
-        reponse = self.client.get(reverse("equipe"))
+        reponse = self.client.get(reverse("home"))
         self.assertNotContains(reponse, "Paramètres")
         self.client.login(username="lea", password="mot de passe-123")
         reponse = self.client.get(reverse("home"))
+        self.assertContains(reponse, "Équipe")
         self.assertContains(reponse, "Paramètres")
 
 
@@ -134,7 +135,9 @@ class ListesValeursTests(EquipeFixture):
         reponse = self.client.get(reverse("parametres"))
         self.assertContains(reponse, "Lieux du club")
         self.assertContains(reponse, "Gravités potentielles")
-        self.assertContains(reponse, "Fréquences d'exposition")
+        # « d'exposition » : l'apostrophe est échappée en HTML (&#x27;),
+        # on ne cherche donc que le début du titre.
+        self.assertContains(reponse, "Fréquences d")
         self.assertContains(reponse, "Statuts de satisfaction")
 
     def test_ajoute_une_gravite(self):
