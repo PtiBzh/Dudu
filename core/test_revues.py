@@ -354,3 +354,146 @@ class AffichageTests(RevueFixture):
         self.poste.save()
         response = self.client.get(reverse("home"))
         self.assertContains(response, "1 à améliorer")
+
+
+class PassageGuidTests(RevueFixture):
+    """M9 — nouveau process : sélection en bloc au début, puis
+    examen des postes un par un. Le journal (tableau, décisions,
+    actions) reste sur la page revue."""
+
+    def setUp(self):
+        super().setUp()
+        self.vestiaire = Poste.objects.create(
+            nom="Vestiaire moniteurs",
+            description="La porte coince.",
+            auteur=self.alice,
+            latitude=48.43,
+            longitude=-4.56,
+        )
+
+    def test_bouton_passage_sur_la_revue(self):
+        response = self.client.get(
+            reverse("revue_detail", args=[self.revue.pk])
+        )
+        self.assertContains(response, "Passer en revue")
+        self.assertContains(
+            response, reverse("revue_selection", args=[self.revue.pk])
+        )
+
+    def test_selection_tout_coché_quand_la_revue_est_vide(self):
+        revue_vide = Revue.objects.create(date=self.hier)
+        response = self.client.get(
+            reverse("revue_selection", args=[revue_vide.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Commencer le passage")
+        self.assertEqual(
+            response.context["coches"],
+            list(Poste.objects.filter(archive=False).values_list("pk", flat=True)),
+        )
+
+    def test_selection_respecte_les_postes_déjà_examinés(self):
+        """La revue a déjà son poste : c'est lui qui reste coché."""
+        response = self.client.get(
+            reverse("revue_selection", args=[self.revue.pk])
+        )
+        self.assertEqual(response.context["coches"], [self.poste.pk])
+
+    def test_selection_remplace_les_postes_examinés(self):
+        response = self.client.post(
+            reverse("revue_selection", args=[self.revue.pk]),
+            {"postes": [self.vestiaire.pk]},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            list(self.revue.postes.all()), [self.vestiaire]
+        )
+
+    def test_selection_ne_retire_jamais_un_archivé_examiné(self):
+        """Règle 1 : un poste archivé déjà examiné n'est pas
+        décochable, la sélection ne l'efface pas de la revue."""
+        self.poste.archive = True
+        self.poste.save()
+        self.client.post(
+            reverse("revue_selection", args=[self.revue.pk]),
+            {"postes": [self.vestiaire.pk]},
+        )
+        self.assertIn(self.poste, self.revue.postes.all())
+        self.assertIn(self.vestiaire, self.revue.postes.all())
+
+    def test_debut_redirige_vers_le_premier_poste(self):
+        """Ordre du passage : alphabétique, comme la sélection."""
+        self.revue.postes.add(self.vestiaire)
+        response = self.client.get(
+            reverse("revue_passage_debut", args=[self.revue.pk])
+        )
+        self.assertRedirects(
+            response,
+            reverse("revue_passage", args=[self.revue.pk, self.poste.pk]),
+        )
+
+    def test_debut_sans_poste_ramène_au_journal(self):
+        revue_vide = Revue.objects.create(date=self.hier)
+        response = self.client.get(
+            reverse("revue_passage_debut", args=[revue_vide.pk])
+        )
+        self.assertRedirects(
+            response, reverse("revue_detail", args=[revue_vide.pk])
+        )
+
+    def test_passage_affiche_le_poste_complet(self):
+        self.revue.postes.add(self.vestiaire)
+        response = self.client.get(
+            reverse("revue_passage", args=[self.revue.pk, self.poste.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Manutention remorque planches")
+        self.assertContains(response, "Décision collégiale")
+        self.assertContains(response, "1 / 2")
+        self.assertContains(
+            response,
+            "Poste suivant : Vestiaire moniteurs",
+        )
+        # Tout le poste : le bloc santé/sécurité est présent.
+        self.assertContains(response, "Gravité potentielle")
+        self.assertContains(response, "Historique de satisfaction")
+
+    def test_passage_poste_hors_revue_refuse(self):
+        revue_vide = Revue.objects.create(date=self.hier)
+        response = self.client.get(
+            reverse("revue_passage", args=[revue_vide.pk, self.poste.pk])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_dernier_poste_propose_le_récapitulatif(self):
+        self.revue.postes.add(self.vestiaire)
+        response = self.client.get(
+            reverse("revue_passage", args=[self.revue.pk, self.vestiaire.pk])
+        )
+        self.assertContains(response, "Passage terminé")
+        self.assertNotContains(response, "Poste suivant :")
+
+    def test_décision_depuis_le_passage_y_reste(self):
+        """La décision prise depuis l'écran guidé revient à l'écran
+        guidé, pas au journal : le passage continue sans détour."""
+        url_passage = reverse("revue_passage", args=[self.revue.pk, self.poste.pk])
+        response = self.client.post(
+            reverse("revue_satisfaction", args=[self.revue.pk, self.poste.pk]),
+            {"satisfaction": self.a_ameliorer.pk, "retour": url_passage},
+        )
+        self.assertRedirects(response, url_passage)
+        self.poste.refresh_from_db()
+        self.assertEqual(self.poste.satisfaction, self.a_ameliorer)
+
+    def test_retour_fantasque_refuse(self):
+        """Un retour qui ne désigne pas l'écran exact est ignoré :
+        on retombe sur le journal, ancré sur le poste."""
+        response = self.client.post(
+            reverse("revue_satisfaction", args=[self.revue.pk, self.poste.pk]),
+            {"satisfaction": self.critique.pk, "retour": "https://exemple.fr/"},
+        )
+        self.assertRedirects(
+            response,
+            reverse("revue_detail", args=[self.revue.pk]) + f"#poste-{self.poste.pk}",
+            fetch_redirect_response=False,
+        )

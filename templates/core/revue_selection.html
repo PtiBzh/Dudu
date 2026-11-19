@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titre %}Préparer le passage — Revue du {{ revue.date|date:"j F Y" }}{% endblock %}
+{% block contenu %}
+<section>
+  <h1>Préparer le passage</h1>
+  <p class="apercu">Revue du {{ revue.date|date:"j F Y" }} : coche les postes
+  à passer en revue, puis commence le passage — les postes s'examinent
+  un par un, tout le dossier sous les yeux. Les postes archivés, s'ils
+  ont déjà été examinés, restent dans la revue.</p>
+
+  <form method="post" action="{% url 'revue_selection' revue.pk %}">
+    {% csrf_token %}
+    <ul class="selection-liste">
+      {% for poste in postes %}
+      <li>
+        <label class="selection-ligne">
+          <input type="checkbox" name="postes" value="{{ poste.pk }}"
+                 {% if poste.pk in coches %}checked{% endif %}>
+          <span class="nom">{{ poste.nom }}</span>
+          {% if poste.satisfaction %}
+            <span class="chip" style="background: {{ poste.satisfaction.couleur }}">{{ poste.satisfaction.libelle }}</span>
+          {% else %}<span class="chip">à décider</span>{% endif %}
+          {% if poste.retards %}
+            <span class="chip retard-chip">{{ poste.retards }} en retard</span>
+          {% endif %}
+          {% if poste.ouvertes %}
+            <span class="chip">{{ poste.ouvertes }} action{{ poste.ouvertes|pluralize }} en cours</span>
+          {% endif %}
+          {% if poste.lieu %}<span class="apercu">{{ poste.lieu }}</span>{% endif %}
+        </label>
+      </li>
+      {% empty %}
+      <li><span class="apercu">Aucun poste actif : crée d'abord des postes.</span></li>
+      {% endfor %}
+    </ul>
+
+    <div class="espace ligne">
+      <button class="bouton" type="submit">Commencer le passage</button>
+      <a class="lien-retour" href="{% url 'revue_detail' revue.pk %}">Retour à la revue</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

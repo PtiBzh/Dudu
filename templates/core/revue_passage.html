@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block titre %}{{ poste.nom }} — Passage en revue{% endblock %}
+{% block contenu %}
+<section>
+  <p class="apercu">Revue du {{ revue.date|date:"j F Y" }} · passage guidé</p>
+  <div class="entete-liste">
+    <h1>{{ poste.nom }}
+      <span class="passage-progres">{{ rang }} / {{ total }}</span>
+    </h1>
+  </div>
+  <p class="apercu">
+    <a class="lien-retour" href="{% url 'poste_detail' poste.pk %}">Ouvrir la fiche du poste</a>
+    · <a class="lien-retour" href="{% url 'revue_detail' revue.pk %}">Quitter le passage</a>
+  </p>
+
+  <article class="boite large">
+    <h2>Santé / Sécurité</h2>
+    <dl class="fiche">
+      <dt>Gravité potentielle</dt>
+      <dd>{% if poste.gravite %}<span class="chip" style="background: {{ poste.gravite.couleur }}">{{ poste.gravite.libelle }}</span>{% else %}non cotée{% endif %}</dd>
+      <dt>Fréquence d'exposition</dt>
+      <dd>{% if poste.frequence %}<span class="chip" style="background: {{ poste.frequence.couleur }}">{{ poste.frequence.libelle }}</span>{% else %}non cotée{% endif %}</dd>
+      <dt>Origine du signalement</dt>
+      <dd><span class="chip origine-{{ poste.origine }}">{{ poste.get_origine_display }}</span></dd>
+      <dt>Statut de satisfaction</dt>
+      <dd>
+        {% if poste.satisfaction %}
+          <span class="chip" style="background: {{ poste.satisfaction.couleur }}">{{ poste.satisfaction.libelle }}</span>
+        {% else %}à décider{% endif %}
+      </dd>
+    </dl>
+
+    <h2>Décision collégiale</h2>
+    <form class="ligne" method="post"
+          action="{% url 'revue_satisfaction' revue.pk poste.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="retour" value="{% url 'revue_passage' revue.pk poste.pk %}">
+      <select name="satisfaction" aria-label="Nouvelle satisfaction">
+        {% for s in satisfactions %}
+          <option value="{{ s.pk }}" {% if poste.satisfaction_id == s.pk %}selected{% endif %}>{{ s.libelle }}</option>
+        {% endfor %}
+      </select>
+      <button class="bouton" type="submit">Décider</button>
+    </form>
+
+    <h2>Actions</h2>
+    {% if poste.actions.all %}
+    <ul class="liste-actions">
+      {% for action in poste.actions.all %}
+      <li>
+        <a href="{% url 'action_detail' action.pk %}">{{ action.intitule }}</a>
+        <span class="chip statut-{{ action.statut }}">{{ action.get_statut_display }}</span>
+        {% if action.en_retard %}<span class="chip retard-chip">en retard</span>{% endif %}
+        <span class="apercu">échéance {{ action.echeance|date:"j F Y" }} · pour {{ action.responsable.get_full_name|default:action.responsable.username }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="apercu">Aucune action encore décidée pour ce poste.</p>
+    {% endif %}
+    <p>
+      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}?revue={{ revue.pk }}">Nouvelle action collégiale</a>
+    </p>
+
+    {% if photos_avant %}
+    <h2>Photos avant</h2>
+    <div class="galerie">
+      {% for photo in photos_avant %}
+      <figure>
+        <img class="photo" src="{{ photo.fichier.url }}" alt="Photo avant — {{ poste.nom }}">
+        <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
+      </figure>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if paires %}
+    <h2>Avant / après</h2>
+    {% for paire in paires %}
+    <p class="apercu">« {{ paire.action.intitule }} », clôturée le {{ paire.action.date_cloture|date:"j F Y" }}</p>
+    <div class="cote-a-cote">
+      <div class="cote-comparaison">
+        <span class="chip">Avant</span>
+        {% for photo in paire.photos_avant %}
+        <img class="photo" src="{{ photo.fichier.url }}" alt="Avant — {{ poste.nom }}">
+        {% empty %}
+        <div class="photo-absente"><p>Pas de photo « avant » pour la comparaison.</p></div>
+        {% endfor %}
+      </div>
+      <div class="cote-comparaison">
+        <span class="chip">Après</span>
+        {% for photo in paire.photos_apres %}
+        <img class="photo" src="{{ photo.fichier.url }}" alt="Après — {{ paire.action.intitule }}">
+        {% empty %}
+        <div class="photo-absente"><p>Pas encore de photo « après ».</p></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <h2>Historique de satisfaction</h2>
+    {% if changements %}
+    <ul class="liste-actions">
+      {% for changement in changements %}
+      <li>
+        {{ changement.ancienne|default:"À décider" }} → {{ changement.nouvelle.libelle }}
+        <span class="apercu">décidé en <a href="{% url 'revue_detail' changement.revue.pk %}">revue du {{ changement.revue.date|date:"j F Y" }}</a></span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="apercu">Aucune décision antérieure pour ce poste.</p>
+    {% endif %}
+  </article>
+
+  <nav class="passage-nav" aria-label="Navigation du passage">
+    {% if precedent %}
+      <a class="bouton discret" href="{% url 'revue_passage' revue.pk precedent.pk %}">← {{ precedent.nom }}</a>
+    {% else %}
+      <span class="apercu">Premier poste du passage</span>
+    {% endif %}
+    {% if suivant %}
+      <a class="bouton" href="{% url 'revue_passage' revue.pk suivant.pk %}">Poste suivant : {{ suivant.nom }} →</a>
+    {% else %}
+      <a class="bouton vert" href="{% url 'revue_detail' revue.pk %}">Passage terminé — récapitulatif de la revue</a>
+    {% endif %}
+  </nav>
+</section>
+{% endblock %}
