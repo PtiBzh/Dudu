@@ -14,7 +14,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .models import PlanBatiment, Utilisateur
+from .models import PlanBatiment, Poste, Utilisateur
 
 # Dossier isolé pour l'écriture des fichiers de test : rien ne doit
 # arriver dans le dossier du projet (la CI commite tout).
@@ -359,3 +359,32 @@ class SuppressionTests(PlanFixture):
         reponse = self.client.post(reverse("plan_supprimer", args=[plan.pk]))
         self.assertEqual(reponse.status_code, 403)
         self.assertEqual(PlanBatiment.objects.count(), 1)
+
+
+@override_settings(MEDIA_ROOT=MEDIAS_TESTS)
+class MinisCartesTests(PlanFixture):
+    """Les mini-cartes de saisie affichent les bâtiments sous le marqueur
+    (M6) : situer un poste sans voir le Hangar, c'est dur. Le clic reste
+    celui du placement ; la grande carte garde, elle, la priorité au
+    marqueur (un poste superposé à un bâtiment reste cliquable)."""
+
+    def test_plans_dans_mini_carte_creation_poste(self):
+        self.plan_forme(forme=POLYGONE)
+        reponse = self.client.get(reverse("poste_creer"))
+        self.assertContains(reponse, 'id="donnees-plans"')
+        self.assertContains(reponse, "Hangar")
+
+    def test_plans_dans_mini_carte_modification_poste(self):
+        self.plan_forme(forme=POLYGONE)
+        poste = Poste.objects.create(
+            nom="Accueil des estivants",
+            auteur=self.zoe,
+            origine=Poste.Origine.CONSTAT,
+            latitude=48.42,
+            longitude=-4.55,
+        )
+        reponse = self.client.get(reverse("poste_modifier", args=[poste.pk]))
+        self.assertContains(reponse, 'id="donnees-plans"')
+        self.assertContains(reponse, "Hangar")
+        # décimaux en point, pas en virgule (le vrai bug de l'été)
+        self.assertContains(reponse, 'data-lat="48.420000"')
