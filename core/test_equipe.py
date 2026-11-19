@@ -4,6 +4,7 @@ aux animateurs (comptes, rôles, listes de valeurs, réglages de carte).
 from django.test import TestCase
 from django.urls import reverse
 
+from .forms import ReglagesForm
 from .models import (
     Lieu,
     Poste,
@@ -228,6 +229,31 @@ class ReglagesCarteTests(EquipeFixture):
         self.assertContains(reponse, 'data-lat="47.797593"')
         self.assertContains(reponse, 'data-lng="-4.212860"')
         self.assertContains(reponse, 'data-zoom="15"')
+
+    def test_zoom_decimal_accepte(self):
+        """La mini-carte écrit un zoom à une décimale : le réglage
+        l'accepte et toutes les cartes partent à ce zoom exact."""
+        reponse = self.client.post(
+            reverse("parametres_carte"),
+            {
+                "centre_latitude": "47.797593",
+                "centre_longitude": "-4.212860",
+                "zoom_carte": "14.6",
+            },
+        )
+        self.assertRedirects(reponse, reverse("parametres"))
+        courants = Reglages.charge()
+        self.assertAlmostEqual(courants.zoom_carte, 14.6)
+        reponse = self.client.get(reverse("carte"))
+        self.assertContains(reponse, 'data-zoom="14.6"')
+
+    def test_le_champ_zoom_ne_bloque_pas_les_decimales(self):
+        """Sans step="any", la validation HTML5 refuse 14,6 avant même
+        d'atteindre le serveur."""
+        formulaire = ReglagesForm()
+        self.assertEqual(
+            formulaire["zoom_carte"].field.widget.attrs["step"], "any"
+        )
 
     def test_latitude_folle_refusee(self):
         reponse = self.client.post(
