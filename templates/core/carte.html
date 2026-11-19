@@ -44,7 +44,7 @@ actions ouvertes. Mêmes filtres que la vue liste.</p>
 <div id="carte" class="boite-carte"
      data-lat="{{ centre.0 }}"
      data-lng="{{ centre.1 }}"
-     data-zoom="{{ zoom|floatformat:'-2' }}"
+     data-zoom="{{ zoom|stringformat:'g' }}"
      data-poste="{{ poste_cible }}"></div>
 {{ donnees_carte|json_script:"donnees-carte" }}
 {% endblock %}
