@@ -77,7 +77,23 @@ function duduCentreDe(points) {
  *   jamais son clic — un poste superposé à un bâtiment reste
  *   cliquable (bug remonté en exploitation).
  * options.popup : titre du plan au clic (défaut : oui). La mini-carte
- *   de saisie le coupe : là, le clic place le marqueur. */
+ *   de saisie le coupe : là, le clic place le marqueur.
+ * options.etiquettes : nom du bâtiment affiché en permanence sur la
+ *   carte (défaut : oui). */
+/* Étiquette de plan clouée à sa position : un marqueur DOM, pas une
+ * couche symbole — le style n'embarque pas de serveur de glyphes
+ * (text-field exigerait style.glyphs). Un <div> en pointer-events:none
+ * laisse passer les clics : le poste posé sur le bâtiment garde la
+ * main. Le texte passe par textContent : jamais de HTML injecté. */
+var duduEtiquetteSur = function (carte, lng, lat, texte) {
+  var element = document.createElement("div");
+  element.className = "etiquette-plan";
+  element.textContent = texte;
+  new maplibregl.Marker({ element: element })
+    .setLngLat([lng, lat])
+    .addTo(carte);
+};
+
 window.DUDU_AJOUTER_PLANS = function (carte, plans, options) {
   "use strict";
   var options = options || {};
@@ -160,6 +176,20 @@ window.DUDU_AJOUTER_PLANS = function (carte, plans, options) {
           var centre = duduCentreDe(plan.coins);
           window.DUDU_POPUP_SUR(carte, centre[0], centre[1], titreDe(plan));
         });
+      }
+
+      /* Nom du bâtiment en permanence, au centre du plan. */
+      if (options.etiquettes !== false) {
+        var centre =
+          plan.nature === "image" && plan.coins
+            ? duduCentreDe(plan.coins)
+            : duduCentreDe(plan.forme.coordinates[0]);
+        duduEtiquetteSur(
+          carte,
+          centre[0],
+          centre[1],
+          plan.nom + (plan.etiquette ? " — " + plan.etiquette : "")
+        );
       }
     });
 };

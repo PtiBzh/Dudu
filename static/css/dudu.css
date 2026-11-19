@@ -262,6 +262,21 @@ tr.en-retard td { background: #fbeae9; }
 .maplibregl-popup-content { font: inherit; padding: 0.6rem 0.9rem; }
 .maplibregl-popup-content a { color: var(--accent); }
 
+/* Nom d'un bâtiment affiché en permanence sur la carte.
+ * pointer-events:none : le clic traverse, un poste posé sur le
+ * bâtiment reste cliquable. */
+.etiquette-plan {
+  pointer-events: none;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .obligatoire {
   color: #b3261e;
   font-size: 0.75rem;
