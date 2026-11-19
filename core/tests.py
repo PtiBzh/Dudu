@@ -70,7 +70,8 @@ class JeuDeValeursTests(TestCase):
         self.assertTrue(
             ValeurSatisfaction.objects.filter(libelle="À améliorer").exists()
         )
-        self.assertTrue(Lieu.objects.filter(nom="Hangar").exists())
+        for nom in ("Accueil", "Parc à bateaux", "Slip", "Ponton"):
+            self.assertTrue(Lieu.objects.filter(nom=nom).exists())
 
     def test_jeu_defaut_complet(self):
         self.assertEqual(ValeurSatisfaction.objects.count(), 3)
