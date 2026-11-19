@@ -40,7 +40,10 @@
   {% if action.photos_apres.count %}
   <div class="galerie">
     {% for photo in action.photos_apres.all %}
-    <img class="photo" src="{{ photo.fichier.url }}" alt="Photo après — {{ action.intitule }}">
+    <figure>
+      <img class="photo" src="{{ photo.fichier.url }}" alt="Photo après — {{ action.intitule }}">
+      <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
+    </figure>
     {% endfor %}
   </div>
   {% elif action.statut == 'faite' %}

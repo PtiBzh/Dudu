@@ -231,6 +231,23 @@ class VueAvantApresTests(PhotoFixture):
         )
         self.assertContains(reponse, "/medias/photos/")
 
+    def test_toutes_les_photos_dans_la_comparaison(self):
+        """Plusieurs photos de chaque côté : la comparaison du poste
+        les empile toutes, tuiles 4/3, sans démolir la mise en page."""
+        self.ajouter_photo_avant()
+        self.ajouter_photo_avant(taille=(900, 1600))
+        Action.objects.filter(pk=self.action.pk).update(
+            statut=Action.Statut.FAITE
+        )
+        self.ajouter_photo_apres()
+        self.ajouter_photo_apres(taille=(900, 1600))
+        reponse = self.client.get(
+            reverse("poste_detail", args=[self.poste.pk])
+        )
+        self.assertContains(reponse, "Avant / après")
+        self.assertContains(reponse, 'alt="Avant — ', count=2)
+        self.assertContains(reponse, 'alt="Après — ', count=2)
+
     def test_action_faite_sans_photo_sollicitee(self):
         Action.objects.filter(pk=self.action.pk).update(
             statut=Action.Statut.FAITE
@@ -265,6 +282,17 @@ class RevueAvantApresTests(PhotoFixture):
         )
         self.assertContains(reponse, "Actions clôturées")
         self.assertContains(reponse, "Regler la hauteur")
+
+    def test_toutes_les_photos_dans_la_comparaison(self):
+        """Plusieurs photos de chaque côté : la revue les empile
+        toutes, cadres pleins des deux côtés de la comparaison."""
+        self.ajouter_photo_avant(taille=(1200, 1600))
+        self.ajouter_photo_apres(taille=(1200, 1600))
+        reponse = self.client.get(
+            reverse("revue_detail", args=[self.revue.pk])
+        )
+        self.assertContains(reponse, 'alt="Avant — ', count=2)
+        self.assertContains(reponse, 'alt="Après — ', count=2)
 
     def test_cloturee_avant_la_revue_precedente_absente(self):
         Action.objects.filter(pk=self.action.pk).update(
