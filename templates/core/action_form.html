@@ -39,6 +39,7 @@
            data-lat="{{ action_lat|default:poste_lat|default:centre.0 }}"
            data-lng="{{ action_lng|default:poste_lng|default:centre.1 }}"
            data-zoom="{{ zoom }}"></div>
+      {{ plans|json_script:"donnees-plans" }}
       <span id="position-choisie" class="apercu">Laissé vide, le marqueur de
       l'action s'affiche à la position du poste.</span>
     </div>
