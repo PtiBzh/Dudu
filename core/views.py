@@ -257,8 +257,10 @@ def poste_detail(request, pk):
     paires = [
         {
             "action": action,
-            "photo_avant": photos_avant[0] if photos_avant else None,
-            "photo_apres": action.photos_apres.first(),
+            # Toutes les photos de chaque côté : plusieurs « avant » et
+            # plusieurs « après » s'affichent empilées dans la comparaison.
+            "photos_avant": photos_avant,
+            "photos_apres": list(action.photos_apres.all()),
         }
         for action in poste.actions.filter(
             statut=Action.Statut.FAITE, photos_apres__isnull=False
@@ -618,8 +620,8 @@ def revue_detail(request, pk):
     paires_cloturees = [
         {
             "action": action,
-            "photo_avant": action.poste.photos_avant.first(),
-            "photo_apres": action.photos_apres.first(),
+            "photos_avant": action.poste.photos_avant.all(),
+            "photos_apres": action.photos_apres.all(),
         }
         for action in cloturees
     ]
