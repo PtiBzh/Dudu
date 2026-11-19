@@ -26,6 +26,22 @@ urlpatterns = [
         views.revue_satisfaction,
         name="revue_satisfaction",
     ),
+    # M9 — passage guidé : sélection en bloc puis examen un par un.
+    path(
+        "revues/<int:pk>/selection/",
+        views.revue_selection,
+        name="revue_selection",
+    ),
+    path(
+        "revues/<int:pk>/passage/",
+        views.revue_passage_debut,
+        name="revue_passage_debut",
+    ),
+    path(
+        "revues/<int:pk>/passage/<int:poste_pk>/",
+        views.revue_passage,
+        name="revue_passage",
+    ),
     path("postes/", views.postes, name="postes"),
     path("postes/nouveau/", views.poste_creer, name="poste_creer"),
     path("postes/<int:pk>/", views.poste_detail, name="poste_detail"),

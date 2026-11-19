@@ -4,6 +4,7 @@
 <section>
   <div class="entete-liste">
     <h1>Revue du {{ revue.date|date:"j F Y" }}</h1>
+    <a class="bouton" href="{% url 'revue_selection' revue.pk %}">Passer en revue</a>
     <a class="bouton discret" href="{% url 'revue_modifier' revue.pk %}">Modifier</a>
   </div>
   <p class="apercu">
@@ -69,7 +70,9 @@
   </table>
   {% else %}
   <p class="apercu">Aucun poste examiné pour l'instant : ajoute ceux
-  passés en revue, les décisions se prennent poste par poste.</p>
+  passés en revue, les décisions se prennent poste par poste.
+  Ou <a href="{% url 'revue_selection' revue.pk %}">prépare le passage guidé</a>
+  pour les sélectionner d'un coup.</p>
   {% endif %}
 
   {% if changements %}

@@ -717,8 +717,137 @@ def revue_satisfaction(request, pk, poste_pk):
             )
             poste.satisfaction = nouvelle
             poste.save(update_fields=["satisfaction"])
-    retour = reverse("revue_detail", args=[revue.pk])
-    return redirect(f"{retour}#poste-{poste.pk}")
+    retour_attendu = reverse("revue_detail", args=[revue.pk])
+    ancre = f"{retour_attendu}#poste-{poste.pk}"
+    # Un retour au passage guidé est accepté uniquement s'il désigne
+    # exactement l'écran courant : pas de redirection vers n'importe quoi.
+    passage = reverse("revue_passage", args=[revue.pk, poste.pk])
+    if request.POST.get("retour") == passage:
+        ancre = passage
+    return redirect(ancre)
+
+
+@login_required
+def revue_selection(request, pk):
+    """Nouveau process (M9) — étape 1 du passage guidé : on coche
+    d'un coup les postes à passer en revue. Défaut : tout ce qui
+    n'est pas archivé ; si la revue a déjà ses postes, ce sont eux
+    qui sont cochés. Les postes archivés déjà examinés restent
+    dans la revue (règle 1 : rien ne disparaît)."""
+    revue = get_object_or_404(Revue, pk=pk)
+    aujourdhui = timezone.localdate()
+    postes = (
+        Poste.objects.filter(archive=False)
+        .select_related("lieu", "gravite", "satisfaction")
+        .annotate(
+            ouvertes=Count(
+                "actions",
+                filter=Q(
+                    actions__statut__in=[
+                        Action.Statut.A_FAIRE,
+                        Action.Statut.EN_COURS,
+                    ]
+                ),
+            ),
+            retards=Count(
+                "actions",
+                filter=Q(
+                    actions__statut__in=[
+                        Action.Statut.A_FAIRE,
+                        Action.Statut.EN_COURS,
+                    ],
+                    actions__echeance__lt=aujourdhui,
+                ),
+            ),
+        )
+        .order_by("nom")
+    )
+    if request.method == "POST":
+        coches = Poste.objects.filter(
+            pk__in=request.POST.getlist("postes"), archive=False
+        )
+        # Les archivés déjà examinés ne sont pas décochables : la
+        # sélection ne les retire jamais.
+        revue.postes.set(
+            list(coches) + list(revue.postes.filter(archive=True))
+        )
+        return redirect("revue_passage_debut", pk=revue.pk)
+    examines = list(revue.postes.values_list("pk", flat=True))
+    if not examines:
+        examines = list(postes.values_list("pk", flat=True))
+    return render(
+        request,
+        "core/revue_selection.html",
+        {
+            "section": "revues",
+            "revue": revue,
+            "postes": postes,
+            "coches": examines,
+        },
+    )
+
+
+@login_required
+def revue_passage_debut(request, pk):
+    """Étape 2 : direction le premier poste à examiner (ordre
+    alphabétique, comme la sélection), ou retour au journal si
+    la revue n'examine aucun poste."""
+    revue = get_object_or_404(Revue, pk=pk)
+    premier = revue.postes.filter(archive=False).order_by("nom").first()
+    if not premier:
+        messages.info(
+            request,
+            "Aucun poste à examiner : coche d'abord les postes "
+            "à passer en revue.",
+        )
+        return redirect("revue_detail", pk=revue.pk)
+    return redirect("revue_passage", pk=revue.pk, poste_pk=premier.pk)
+
+
+@login_required
+def revue_passage(request, pk, poste_pk):
+    """Étape 3 — le passage proprement dit : un poste à la fois,
+    tout le poste (gravité, historique, actions, photos), la
+    décision collégiale à portée de main, puis le suivant."""
+    revue = get_object_or_404(
+        Revue.objects.prefetch_related("postes"), pk=pk
+    )
+    postes = list(revue.postes.filter(archive=False).order_by("nom"))
+    poste = next((p for p in postes if p.pk == poste_pk), None)
+    if poste is None:
+        raise Http404("Poste non examiné par cette revue.")
+    rang = postes.index(poste)
+    precedent = postes[rang - 1] if rang > 0 else None
+    suivant = postes[rang + 1] if rang + 1 < len(postes) else None
+    paires = [
+        {
+            "action": action,
+            "photos_avant": action.poste.photos_avant.all(),
+            "photos_apres": action.photos_apres.all(),
+        }
+        for action in Action.objects.filter(
+            poste=poste, statut=Action.Statut.FAITE, date_cloture__isnull=False
+        ).order_by("-date_cloture")
+    ]
+    return render(
+        request,
+        "core/revue_passage.html",
+        {
+            "section": "revues",
+            "revue": revue,
+            "poste": poste,
+            "rang": rang + 1,
+            "total": len(postes),
+            "precedent": precedent,
+            "suivant": suivant,
+            "satisfactions": ValeurSatisfaction.objects.all(),
+            "photos_avant": poste.photos_avant.select_related("auteur"),
+            "changements": poste.changements_satisfaction.select_related(
+                "ancienne", "nouvelle", "revue"
+            ),
+            "paires": paires,
+        },
+    )
 
 
 @login_required
