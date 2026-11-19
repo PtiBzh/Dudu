@@ -49,74 +49,10 @@ document.addEventListener("DOMContentLoaded", function () {
   /* Plans de bâtiments (M6) : formes dessinées et images calées,
    * sous les marqueurs, triées par ordre d'affichage puis
    * ajoutées dans l'ordre — le dernier ajout recouvre. */
-  function ajouterPlans(plans) {
-    var tries = plans.slice().sort(function (a, b) {
-      return (a.ordre || 0) - (b.ordre || 0);
-    });
-    tries.forEach(function (plan) {
-      var titre = plan.nom + (plan.etiquette ? " — " + plan.etiquette : "");
-      if (plan.nature === "forme" && plan.forme) {
-        var id = "plan-forme-" + plan.id;
-        carte.addSource(id, {
-          type: "geojson",
-          data: { type: "Feature", geometry: plan.forme, properties: {} },
-        });
-        carte.addLayer({
-          id: id,
-          type: "fill",
-          source: id,
-          paint: {
-            "fill-color": plan.couleur,
-            "fill-opacity": Math.min(0.9, plan.opacite * 0.9),
-          },
-        });
-        carte.addLayer({
-          id: id + "-contour",
-          type: "line",
-          source: id,
-          paint: {
-            "line-color": plan.couleur,
-            "line-width": 2,
-            "line-opacity": 0.9,
-          },
-        });
-        carte.on("click", id, function () {
-          popupSur(centreDe(plan.forme), titre);
-        });
-      } else if (plan.nature === "image" && plan.url && plan.coins) {
-        var idImage = "plan-image-" + plan.id;
-        carte.addSource(idImage, {
-          type: "image",
-          url: plan.url,
-          coordinates: plan.coins,
-        });
-        carte.addLayer({
-          id: idImage,
-          type: "raster",
-          source: idImage,
-          paint: {
-            "raster-opacity": plan.opacite,
-            "raster-fade-duration": 0,
-          },
-        });
-        carte.on("click", idImage, function () {
-          popupSur(centreDeCoins(plan.coins), titre);
-        });
-      }
-    });
-  }
-
-  function centreDe(forme) {
-    return centreDeCoins(forme.coordinates[0]);
-  }
-
-  function centreDeCoins(points) {
-    var c = [0, 0];
-    points.forEach(function (p) {
-      c[0] += p[0];
-      c[1] += p[1];
-    });
-    return [c[0] / points.length, c[1] / points.length];
+  /* Popup et plans : socle partagé (fond-carte.js) — une seule
+   * implémentation pour la grande carte et les mini-cartes. */
+  function popupSur(lng, lat, html) {
+    window.DUDU_POPUP_SUR(carte, lng, lat, html);
   }
 
   /* HTML de popup construit par le DOM : textContent échappe les
@@ -138,16 +74,12 @@ document.addEventListener("DOMContentLoaded", function () {
     return boite.innerHTML;
   }
 
-  function popupSur(lng, lat, html) {
-    new maplibregl.Popup({ closeButton: false, offset: 12 })
-      .setLngLat([lng, lat])
-      .setHTML(html)
-      .addTo(carte);
-  }
-
   carte.on("load", function () {
-    /* Plans de bâtiments d'abord : ils passent sous les marqueurs. */
-    ajouterPlans(donnees.plans || []);
+    /* Plans de bâtiments d'abord (sous les marqueurs), et priorité
+     * au clic : un poste posé sur un bâtiment reste cliquable. */
+    window.DUDU_AJOUTER_PLANS(carte, donnees.plans || [], {
+      couchesPrioritaires: ["postes", "actions"],
+    });
 
     carte.addSource("postes", {
       type: "geojson",

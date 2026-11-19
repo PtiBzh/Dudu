@@ -27,6 +27,20 @@ document.addEventListener("DOMContentLoaded", function () {
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }));
   window.DUDU_DEBLOQUE_GLISSE_FIREFOX(carte);
 
+  /* Plans de bâtiments sous le marqueur : situer un poste sans voir
+   * le Hangar, c'est dur. Pas de popup au clic sur un plan : le clic
+   * de la mini-carte place le marqueur, on ne le lui vole pas. */
+  var noeudPlans = document.getElementById("donnees-plans");
+  if (noeudPlans !== null) {
+    carte.on("load", function () {
+      window.DUDU_AJOUTER_PLANS(
+        carte,
+        JSON.parse(noeudPlans.textContent),
+        { popup: false }
+      );
+    });
+  }
+
   var marqueur = null;
 
   function champsAJour() {
