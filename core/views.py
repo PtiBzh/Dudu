@@ -476,8 +476,15 @@ def action_creer(request, poste_pk):
         if action.longitude is None:
             action.longitude = poste.longitude
         action.save()
-        messages.success(request, f"Action « {action.intitule} » créée.")
         if retour:
+            # Retour au passage guidé : le message atteste que
+            # l'action est enregistrée — on revient au poste, la
+            # fiche action ne s'ouvre pas (elle interromprait la
+            # revue). Hors passage, pas de message : la fiche
+            # s'ouvre, elle se suffit à elle-même.
+            messages.success(
+                request, f"Action « {action.intitule} » créée."
+            )
             return redirect(retour)
         return redirect("action_detail", pk=action.pk)
     return render(
