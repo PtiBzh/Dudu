@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
     zoom: donnees.zoom,
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+  window.DUDU_DEBLOQUE_GLISSE_FIREFOX(carte);
 
   function centre() {
     var c = [0, 0];

@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
     zoom: donnees.zoom,
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+  window.DUDU_DEBLOQUE_GLISSE_FIREFOX(carte);
 
   var terra = new terraDraw.TerraDraw({
     adapter: new terraDrawMaplibreGlAdapter.TerraDrawMapLibreGLAdapter({

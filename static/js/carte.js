@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
     zoom: parseFloat(conteneur.dataset.zoom),
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+  window.DUDU_DEBLOQUE_GLISSE_FIREFOX(carte);
 
   /* Données vers GeoJSON : MapLibre attend [longitude, latitude]. */
   function enGeojson(elements) {
