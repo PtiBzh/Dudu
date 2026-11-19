@@ -576,6 +576,72 @@ figure { margin: 0; }
 
 .zone-ajout .bouton { margin-left: auto; }
 
+/* Paramètres (-suite) : édition sur place, ordre au glisser-déposer. */
+.forme-ordre { display: none; }
+
+.poignee-glisser {
+  flex: none;
+  cursor: grab;
+  color: var(--gris);
+  user-select: none;
+  padding: 0 0.1rem;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.ligne-valeur.en-glissee {
+  opacity: 0.55;
+  border-color: var(--accent-fonce);
+}
+
+.form-ligne {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 10rem;
+}
+.edition-libelle {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  font-weight: 600;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.4rem;
+}
+.edition-libelle:hover { border-color: var(--bord); }
+.edition-libelle:focus {
+  border-color: var(--accent);
+  outline: none;
+  background: var(--clair);
+}
+.bouton-check {
+  flex: none;
+  opacity: 0;
+  border: none;
+  background: var(--vert-clair);
+  color: var(--vert);
+  font-weight: 700;
+  border-radius: 0.4rem;
+  padding: 0.05rem 0.5rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.form-ligne:focus-within .bouton-check { opacity: 1; }
+.choix-couleur {
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.carte-param .mini-carte { height: 20rem; margin: 0.6rem 0 0.2rem; }
+
 /* M9 — revue guidée : sélection en bloc puis passage un par un. */
 .selection-liste {
   list-style: none;

@@ -4,7 +4,13 @@ aux animateurs (comptes, rôles, listes de valeurs, réglages de carte).
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Poste, Reglages, Utilisateur, ValeurGravite
+from .models import (
+    Lieu,
+    Poste,
+    Reglages,
+    Utilisateur,
+    ValeurGravite,
+)
 
 
 class EquipeFixture(TestCase):
@@ -235,3 +241,109 @@ class ReglagesCarteTests(EquipeFixture):
         self.assertContains(reponse, " entre -90 et 90 ")
         courants = Reglages.charge()
         self.assertNotAlmostEqual(courants.centre_latitude, 120)
+
+
+class ReordonnancementTests(EquipeFixture):
+    """Paramètres : l'ordre se règle en déposant les lignes — le
+    serveur réécrit les rangs depuis la liste des identifiants, et
+    refuse tout ce qui ne colle pas (rien ne disparaît)."""
+
+    def test_la_page_porte_le_prochain_ordre(self):
+        """Le jeu par défaut est en place : la prochaine gravité se
+        rangera juste après la plus haute."""
+        dernier = ValeurGravite.objects.order_by("-ordre").first()
+        reponse = self.client.get(reverse("parametres"))
+        self.assertContains(
+            reponse, f'name="ordre" value="{dernier.ordre + 1}"'
+        )
+
+    def test_la_glisse_reecrit_les_rangs(self):
+        faibles = ValeurGravite.objects.create(
+            libelle="Faible", ordre=1, couleur="#111111"
+        )
+        enormes = ValeurGravite.objects.create(
+            libelle="Énorme", ordre=2, couleur="#222222"
+        )
+        graves = ValeurGravite.objects.create(
+            libelle="Grave", ordre=3, couleur="#333333"
+        )
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["gravites"]),
+            {
+                "ordre": ",".join(
+                    str(pk) for pk in (graves.pk, faibles.pk, enormes.pk)
+                )
+            },
+        )
+        self.assertRedirects(reponse, reverse("parametres"))
+        faibles.refresh_from_db()
+        enormes.refresh_from_db()
+        graves.refresh_from_db()
+        self.assertEqual(graves.ordre, 1)
+        self.assertEqual(faibles.ordre, 2)
+        self.assertEqual(enormes.ordre, 3)
+
+    def test_identifiant_inconnu_refuse(self):
+        gravite = ValeurGravite.objects.create(
+            libelle="Passagère", ordre=1, couleur="#111111"
+        )
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["gravites"]),
+            {"ordre": "999"},
+            follow=True,
+        )
+        self.assertContains(reponse, "Réordonnancement refusé")
+        gravite.refresh_from_db()
+        self.assertEqual(gravite.ordre, 1)
+
+    def test_identifiant_en_double_refuse(self):
+        gravite = ValeurGravite.objects.create(
+            libelle="Passagère", ordre=1, couleur="#111111"
+        )
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["gravites"]),
+            {"ordre": f"{gravite.pk},{gravite.pk}"},
+            follow=True,
+        )
+        self.assertContains(reponse, "Réordonnancement refusé")
+        gravite.refresh_from_db()
+        self.assertEqual(gravite.ordre, 1)
+
+    def test_beurk_illisible_refuse(self):
+        gravite = ValeurGravite.objects.create(
+            libelle="Passagère", ordre=1, couleur="#111111"
+        )
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["gravites"]),
+            {"ordre": "des chevaux"},
+            follow=True,
+        )
+        self.assertContains(reponse, "Réordonnancement refusé")
+        gravite.refresh_from_db()
+        self.assertEqual(gravite.ordre, 1)
+
+    def test_non_animateur_refuse(self):
+        self.client.login(username="bob", password="mot de passe-123")
+        reponse = self.client.post(reverse("parametres_ordre", args=["gravites"]), {"ordre": ""})
+        self.assertEqual(reponse.status_code, 403)
+
+    def test_liste_inconnue_refuse(self):
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["nimporte"]), {"ordre": "1"}
+        )
+        self.assertEqual(reponse.status_code, 404)
+
+    def test_lieux_se_reordonnent_aussi(self):
+        """Les lieux ont le même ordre d'affichage : la poignée y
+        fonctionne pareil."""
+        hangar = Lieu.objects.create(nom="Hangar", ordre=1)
+        parc = Lieu.objects.create(nom="Parc", ordre=2)
+        reponse = self.client.post(
+            reverse("parametres_ordre", args=["lieux"]),
+            {"ordre": f"{parc.pk},{hangar.pk}"},
+        )
+        self.assertRedirects(reponse, reverse("parametres"))
+        hangar.refresh_from_db()
+        parc.refresh_from_db()
+        self.assertEqual(parc.ordre, 1)
+        self.assertEqual(hangar.ordre, 2)
