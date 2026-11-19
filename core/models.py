@@ -684,3 +684,34 @@ class PlanBatiment(models.Model):
                     "Une image se cale par exactement 4 coins "
                     "[longitude, latitude] — jamais 3, jamais 5."
                 )
+
+
+class Reglages(models.Model):
+    """Réglages du club édités dans l'app (paramètres, animateurs) :
+    centre et zoom initiaux de la carte. Une seule ligne ; à la
+    première consultation, la valeur de déploiement (.env
+    DUDU_CENTRE_CARTE / DUDU_ZOOM_CARTE) sert de valeur initiale —
+    ensuite tout se règle depuis la page Paramètres."""
+
+    centre_latitude = models.FloatField("latitude du centre", default=48.42)
+    centre_longitude = models.FloatField("longitude du centre", default=-4.55)
+    zoom_carte = models.PositiveSmallIntegerField("zoom de la carte", default=16)
+
+    class Meta:
+        verbose_name = "réglages"
+        verbose_name_plural = "réglages"
+
+    def __str__(self):
+        return "Réglages de la carte"
+
+    @classmethod
+    def charge(cls):
+        """La ligne unique, créée à la demande depuis le .env."""
+        premier = cls.objects.first()
+        if premier is not None:
+            return premier
+        return cls.objects.create(
+            centre_latitude=settings.DUDU_CENTRE_CARTE[0],
+            centre_longitude=settings.DUDU_CENTRE_CARTE[1],
+            zoom_carte=settings.DUDU_ZOOM_CARTE,
+        )
