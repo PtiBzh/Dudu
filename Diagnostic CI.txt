@@ -1058,7 +1058,7 @@ Traceback (most recent call last):
 AttributeError: 'float' object has no attribute 'user'
 
 ----------------------------------------------------------------------
-Ran 150 tests in 57.509s
+Ran 150 tests in 73.989s
 
 FAILED (errors=28)
 Destroying test database for alias 'default'...
