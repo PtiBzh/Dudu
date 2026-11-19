@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titre %}{{ titre }}{% endblock %}
+{% block contenu %}
+<section class="boite">
+  <h1>{{ titre }}</h1>
+
+  {% if form.non_field_errors %}
+  <ul class="erreur">
+    {% for erreur in form.non_field_errors %}<li>{{ erreur }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% for champ in form.visible_fields %}
+    <p class="{% if champ.errors %}champ-erreur {% endif %}groupe-champ">
+      <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+      {{ champ }}
+      {% if champ.help_text %}<span class="apercu">{{ champ.help_text }}</span>{% endif %}
+      {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+    </p>
+    {% endfor %}
+    <button type="submit">Enregistrer</button>
+    <a class="lien-retour" href="{% url 'parametres' %}">Annuler</a>
+  </form>
+</section>
+{% endblock %}

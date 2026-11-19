@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titre %}Paramètres{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <h1>Paramètres du club</h1>
+  <p class="apercu">Les listes qui structurent les postes et la carte.
+  Une valeur citée par des postes ou des revues ne disparaît jamais ;
+  l'ordre d'affichage guide les formulaires.</p>
+
+  {% for liste in listes %}
+  <h2>{{ liste.titre }}</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{% if liste.slug == "lieux" %}Nom{% else %}Libellé{% endif %}</th>
+        {% if liste.avec_couleur %}<th>Couleur</th>{% endif %}
+        <th>Ordre</th>
+        <th>Usage</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for valeur in liste.valeurs %}
+      <tr>
+        <td>{{ valeur }}</td>
+        {% if liste.avec_couleur %}
+        <td>
+          <span class="pastille-couleur" style="background: {{ valeur.couleur }}"></span>
+          <code>{{ valeur.couleur }}</code>
+        </td>
+        {% endif %}
+        <td>{{ valeur.ordre }}</td>
+        <td>{{ valeur.postes.count }} poste{{ valeur.postes.count|pluralize }}</td>
+        <td class="ligne">
+          <a href="{% url 'parametres_valeur_modifier' liste.slug valeur.pk %}">Modifier</a>
+          <form method="post" action="{% url 'parametres_valeur_supprimer' liste.slug valeur.pk %}">
+            {% csrf_token %}
+            <button class="lien" type="submit">Retirer</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><span class="apercu">Aucune valeur pour l'instant.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <form class="ligne" method="post" action="{% url 'parametres_valeur_ajouter' liste.slug %}">
+    {% csrf_token %}
+    {% for champ in liste.form.visible_fields %}
+    <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+    {{ champ }}
+    {% endfor %}
+    <button class="bouton discret" type="submit">Ajouter</button>
+  </form>
+  {% endfor %}
+
+  <h2>Carte</h2>
+  <p class="apercu">Centre et zoom initiaux de toutes les cartes du club
+  (grande carte, mini-cartes de saisie, éditeurs de plans).</p>
+  <form class="ligne" method="post" action="{% url 'parametres_carte' %}">
+    {% csrf_token %}
+    {% for champ in form_reglages.visible_fields %}
+    <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+    {{ champ }}
+    {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
+    {% endfor %}
+    <button class="bouton discret" type="submit">Enregistrer</button>
+  </form>
+</section>
+{% endblock %}
