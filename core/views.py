@@ -92,6 +92,27 @@ def home(request):
 
 
 @login_required
+def dec6(valeur):
+    """Flottant formaté en point décimal (jamais virgule locale), ou None.
+
+    Les templates rendent les nombres à la française — « 48,42 » — et
+    parseFloat côté navigateur s'arrête à la virgule : la carte s'ouvrait
+    à lat 48, des dizaines de kilomètres trop au sud (découvert en
+    exploitation). Les positions passées aux attributs data-lat/lng
+    sont donc formatées ici en chaînes que le template rend telles
+    quelles.
+    """
+    return None if valeur is None else f"{valeur:.6f}"
+
+
+def centre_decimaux():
+    """Centre de carte initial (DUDU_CENTRE_CARTE) en point décimal."""
+    return (
+        dec6(settings.DUDU_CENTRE_CARTE[0]),
+        dec6(settings.DUDU_CENTRE_CARTE[1]),
+    )
+
+
 def carte(request):
     """Carte des postes et actions (M3) — mêmes filtres que la liste.
 
@@ -165,7 +186,7 @@ def carte(request):
     context = {
         "section": "carte",
         "donnees_carte": donnees_carte,
-        "centre": settings.DUDU_CENTRE_CARTE,
+        "centre": centre_decimaux(),
         "zoom": settings.DUDU_ZOOM_CARTE,
         "poste_cible": request.GET.get("poste", ""),
         "filtres": filtres,
@@ -266,7 +287,7 @@ def poste_creer(request):
             "section": "postes",
             "form": form,
             "titre": "Nouveau poste",
-            "centre": settings.DUDU_CENTRE_CARTE,
+            "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
@@ -290,7 +311,9 @@ def poste_modifier(request, pk):
             "form": form,
             "titre": "Modifier le poste",
             "poste": poste,
-            "centre": settings.DUDU_CENTRE_CARTE,
+            "poste_lat": dec6(poste.latitude),
+            "poste_lng": dec6(poste.longitude),
+            "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
@@ -412,8 +435,10 @@ def action_creer(request, poste_pk):
             "form": form,
             "titre": "Nouvelle action",
             "poste": poste,
+            "poste_lat": dec6(poste.latitude),
+            "poste_lng": dec6(poste.longitude),
             "revue": revue,
-            "centre": settings.DUDU_CENTRE_CARTE,
+            "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )
@@ -452,7 +477,11 @@ def action_modifier(request, pk):
             "titre": "Modifier l'action",
             "action": action,
             "poste": action.poste,
-            "centre": settings.DUDU_CENTRE_CARTE,
+            "action_lat": dec6(action.latitude),
+            "action_lng": dec6(action.longitude),
+            "poste_lat": dec6(action.poste.latitude),
+            "poste_lng": dec6(action.poste.longitude),
+            "centre": centre_decimaux(),
             "zoom": settings.DUDU_ZOOM_CARTE,
         },
     )

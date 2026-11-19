@@ -222,3 +222,53 @@ class CouleursTests(CarteFixture):
         self.poste.save()
         response = self.client.get(reverse("carte"))
         self.assertNotContains(response, "#c62828")
+
+
+class DecimauxTests(CarteFixture):
+    """data-lat/lng en point décimal : les templates rendent les flottants
+    à la locale (« 48,42 ») et parseFloat s'arrête à la virgule — la carte
+    s'ouvrait ~90 km trop au sud. Découvert en exploitation (locale fr)."""
+
+    def test_carte_centre_point_decimal(self):
+        reponse = self.client.get(reverse("carte"))
+        self.assertContains(reponse, 'data-lat="48.420000"')
+        self.assertContains(reponse, 'data-lng="-4.550000"')
+        self.assertNotContains(reponse, 'data-lat="48,42"')
+
+    def test_mini_carte_creation_point_decimal(self):
+        reponse = self.client.get(reverse("poste_creer"))
+        self.assertContains(reponse, 'data-lat="48.420000"')
+        self.assertContains(reponse, 'data-lng="-4.550000"')
+        self.assertNotContains(reponse, "data-lat=\"48,42\"")
+
+    def test_mini_carte_edition_point_decimal(self):
+        poste = Poste.objects.create(
+            nom="Gréage des annexes",
+            description="Winch en fond de cale.",
+            auteur=self.alice,
+            lieu=self.lieu,
+            gravite=self.gravite,
+            frequence=self.frequence,
+            origine=Poste.Origine.CONSTAT,
+            latitude=12.345678,
+            longitude=-3.21,
+        )
+        reponse = self.client.get(reverse("poste_modifier", args=[poste.pk]))
+        self.assertContains(reponse, 'data-lat="12.345678"')
+        self.assertContains(reponse, 'data-lng="-3.210000"')
+        self.assertNotContains(reponse, 'data-lat="12,345678"')
+
+    def test_mini_carte_action_point_decimal(self):
+        action = Action.objects.create(
+            poste=self.poste,
+            intitule="Regler la hauteur de la remorque",
+            description="Ajouter une marche.",
+            responsable=self.alice,
+            echeance=timezone.localdate() + timedelta(days=7),
+            statut=Action.Statut.A_FAIRE,
+            latitude=48.427777,
+            longitude=-4.553333,
+        )
+        reponse = self.client.get(reverse("action_modifier", args=[action.pk]))
+        self.assertContains(reponse, 'data-lat="48.427777"')
+        self.assertNotContains(reponse, 'data-lat="48,427777"')
