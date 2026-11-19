@@ -91,7 +91,6 @@ def home(request):
     return render(request, "core/home.html", context)
 
 
-@login_required
 def dec6(valeur):
     """Flottant formaté en point décimal (jamais virgule locale), ou None.
 
@@ -113,6 +112,7 @@ def centre_decimaux():
     )
 
 
+@login_required
 def carte(request):
     """Carte des postes et actions (M3) — mêmes filtres que la liste.
 
