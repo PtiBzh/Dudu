@@ -94,6 +94,24 @@ a:hover { color: var(--accent-fonce); }
 
 .ligne { display: inline; }
 
+/* Cellules et formulaires d'actions : sur une même ligne, centrés
+   verticalement — liens, boutons et sélecteurs de hauteurs
+   différentes s'alignent avec leur ligne de tableau, pas sur
+   leurs pointes de baselines. */
+form.ligne {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  vertical-align: middle;
+}
+td.ligne { text-align: right; }
+td.ligne > a {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+td.ligne > form { margin-left: 0.6rem; }
+
 button.lien {
   background: none;
   border: none;
