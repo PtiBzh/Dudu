@@ -10,7 +10,6 @@
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied
-from django.http import Http404
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -354,8 +353,8 @@ class StatutRapideTests(ActionFixture):
         action = self.creer_action()
         Utilisateur.objects.create_user("bob", password="mot de passe-123")
         self.client.login(username="bob", password="mot de passe-123")
-        with self.assertRaises(PermissionDenied):
-            self.clic(action, "faite")
+        reponse = self.clic(action, "faite")
+        self.assertEqual(reponse.status_code, 403)
         action.refresh_from_db()
         self.assertEqual(action.statut, Action.Statut.A_FAIRE)
 
@@ -366,15 +365,15 @@ class StatutRapideTests(ActionFixture):
         action.statut = Action.Statut.ABANDONNEE
         action.motif_abandon = "Devenu inutile : la remorque est partie."
         action.save()
-        with self.assertRaises(Http404):
-            self.clic(action, "rouvrir")
+        reponse = self.clic(action, "rouvrir")
+        self.assertEqual(reponse.status_code, 404)
         action.refresh_from_db()
         self.assertEqual(action.statut, Action.Statut.ABANDONNEE)
 
     def test_statut_fantasque_refuse(self):
         action = self.creer_action()
-        with self.assertRaises(Http404):
-            self.clic(action, "perdjusque")
+        reponse = self.clic(action, "perdjusque")
+        self.assertEqual(reponse.status_code, 404)
         action.refresh_from_db()
         self.assertEqual(action.statut, Action.Statut.A_FAIRE)
 

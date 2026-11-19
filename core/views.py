@@ -594,7 +594,7 @@ def action_statut(request, pk, statut):
         else:
             messages.success(
                 request,
-                f"Action {action.get_statut_display.lower()}.",
+                f"Action {action.get_statut_display().lower()}.",
             )
     return redirect("action_detail", pk=action.pk)
 
