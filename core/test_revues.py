@@ -497,3 +497,71 @@ class PassageGuidTests(RevueFixture):
             reverse("revue_detail", args=[self.revue.pk]) + f"#poste-{self.poste.pk}",
             fetch_redirect_response=False,
         )
+
+    def test_creation_d_action_depuis_le_passage_y_revient(self):
+        """Ajouter une action pendant le passage n'interrompt pas la
+        revue : on retombe sur l'écran du poste en cours."""
+        url_passage = reverse(
+            "revue_passage", args=[self.revue.pk, self.poste.pk]
+        )
+        reponse = self.client.get(
+            reverse("action_creer", args=[self.poste.pk]),
+            {"revue": self.revue.pk, "retour": url_passage},
+        )
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, 'name="retour"')
+        reponse = self.client.post(
+            reverse("action_creer", args=[self.poste.pk]),
+            self.donnees_action(revue=self.revue.pk, retour=url_passage),
+        )
+        self.assertRedirects(reponse, url_passage)
+        action = Action.objects.get(revue=self.revue)
+        self.assertEqual(action.poste, self.poste)
+
+    def test_creation_depuis_le_passage_sans_quitter_le_formulaire(self):
+        """Formulaire invalide depuis le passage : on reste sur le
+        formulaire, le retour y est toujours porté."""
+        url_passage = reverse(
+            "revue_passage", args=[self.revue.pk, self.poste.pk]
+        )
+        reponse = self.client.post(
+            reverse("action_creer", args=[self.poste.pk]),
+            self.donnees_action(
+                revue=self.revue.pk, retour=url_passage, echeance=""
+            ),
+        )
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, 'name="retour"')
+        self.assertEqual(Action.objects.count(), 0)
+
+    def test_retour_fantasque_ramene_a_la_fiche_action(self):
+        """Un retour qui ne désigne pas l'écran exact est ignoré :
+        l'action créée s'ouvre normalement."""
+        url_passage = reverse(
+            "revue_passage", args=[self.revue.pk, self.poste.pk]
+        )
+        reponse = self.client.post(
+            reverse("action_creer", args=[self.poste.pk]),
+            self.donnees_action(
+                revue=self.revue.pk, retour="https://exemple.fr/"
+            ),
+        )
+        action = Action.objects.get(revue=self.revue)
+        self.assertRedirects(
+            reponse, reverse("action_detail", args=[action.pk])
+        )
+
+    def test_retour_d_un_autre_poste_refuse(self):
+        """Un retour qui désigne l'écran d'un autre poste est ignoré :
+        c'est l'écran du poste de l'action, ou rien."""
+        url_vestiaire = reverse(
+            "revue_passage", args=[self.revue.pk, self.vestiaire.pk]
+        )
+        reponse = self.client.post(
+            reverse("action_creer", args=[self.poste.pk]),
+            self.donnees_action(revue=self.revue.pk, retour=url_vestiaire),
+        )
+        action = Action.objects.get(revue=self.revue)
+        self.assertRedirects(
+            reponse, reverse("action_detail", args=[action.pk])
+        )
