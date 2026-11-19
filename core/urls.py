@@ -56,6 +56,11 @@ urlpatterns = [
     path("actions/<int:pk>/", views.action_detail, name="action_detail"),
     path("actions/<int:pk>/modifier/", views.action_modifier, name="action_modifier"),
     path(
+        "actions/<int:pk>/statut/<str:statut>/",
+        views.action_statut,
+        name="action_statut",
+    ),
+    path(
         "postes/<int:poste_pk>/photos/",
         views.poste_photo_ajouter,
         name="poste_photo_ajouter",

@@ -552,6 +552,54 @@ def poste_photo_ajouter(request, poste_pk):
 
 
 @login_required
+def action_statut(request, pk, statut):
+    """Changement rapide de statut depuis la fiche (POST uniquement) :
+    démarrer, clôturer, remettre à faire, rouvrir. L'abandon reste
+    l'affaire du formulaire complet — il exige son motif. La clôture
+    se date et la réouverture l'efface (même save() que l'édition),
+    les revues en tirent leurs « actions clôturées depuis la
+    précédente »."""
+    action = get_object_or_404(
+        Action.objects.select_related("poste"), pk=pk
+    )
+    if not action.peut_etre_modifiee_par(request.user):
+        raise PermissionDenied(
+            "Seul le responsable ou l'animateur change le statut "
+            "d'une action."
+        )
+    cibles = {
+        "en_cours": Action.Statut.EN_COURS,
+        "faite": Action.Statut.FAITE,
+        "rouvrir": Action.Statut.A_FAIRE,
+    }
+    transitions = {
+        Action.Statut.A_FAIRE: {Action.Statut.EN_COURS, Action.Statut.FAITE},
+        Action.Statut.EN_COURS: {Action.Statut.A_FAIRE, Action.Statut.FAITE},
+        Action.Statut.FAITE: {Action.Statut.A_FAIRE},
+    }
+    cible = cibles.get(statut)
+    if cible is None or cible not in transitions.get(action.statut, set()):
+        raise Http404("Changement de statut inconnu.")
+    if request.method == "POST":
+        action.statut = cible
+        action.save()
+        if action.statut == Action.Statut.FAITE and not action.photos_apres.exists():
+            # Règle 5 des écrans : clôturer sans photo « après » se
+            # signale, sans jamais bloquer.
+            messages.warning(
+                request,
+                "Action clôturée sans photo « après » : ajoute-la, "
+                "elle témoigne du travail accompli.",
+            )
+        else:
+            messages.success(
+                request,
+                f"Action {action.get_statut_display.lower()}.",
+            )
+    return redirect("action_detail", pk=action.pk)
+
+
+@login_required
 def action_photo_ajouter(request, pk):
     """Photo « après » : témoigner du travail accompli. Réservée au
     responsable ou à l'animateur, comme l'édition de l'action."""

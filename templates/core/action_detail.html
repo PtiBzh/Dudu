@@ -61,7 +61,36 @@
 
   <div class="actions">
     {% if modifiable %}
-      <a class="bouton" href="{% url 'action_modifier' action.pk %}">Modifier</a>
+      {% if action.statut == 'a_faire' %}
+      <form class="ligne" method="post"
+            action="{% url 'action_statut' action.pk 'en_cours' %}">
+        {% csrf_token %}
+        <button class="bouton discret" type="submit">Démarrer</button>
+      </form>
+      <form class="ligne" method="post"
+            action="{% url 'action_statut' action.pk 'faite' %}">
+        {% csrf_token %}
+        <button class="bouton vert" type="submit">Clôturer</button>
+      </form>
+      {% elif action.statut == 'en_cours' %}
+      <form class="ligne" method="post"
+            action="{% url 'action_statut' action.pk 'faite' %}">
+        {% csrf_token %}
+        <button class="bouton vert" type="submit">Clôturer</button>
+      </form>
+      <form class="ligne" method="post"
+            action="{% url 'action_statut' action.pk 'rouvrir' %}">
+        {% csrf_token %}
+        <button class="bouton discret" type="submit">Remettre à faire</button>
+      </form>
+      {% elif action.statut == 'faite' %}
+      <form class="ligne" method="post"
+            action="{% url 'action_statut' action.pk 'rouvrir' %}">
+        {% csrf_token %}
+        <button class="bouton discret" type="submit">Rouvrir</button>
+      </form>
+      {% endif %}
+      <a class="bouton discret" href="{% url 'action_modifier' action.pk %}">Tout modifier</a>
     {% endif %}
   </div>
 </section>
