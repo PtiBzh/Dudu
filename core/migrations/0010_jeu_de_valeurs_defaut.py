@@ -8,9 +8,9 @@ from django.db import migrations
 
 LIEUX = [
     ("Accueil", 1),
-    ("Hangar", 2),
-    ("Parc à bateaux", 3),
-    ("Slip", 4),
+    ("Parc à bateaux", 2),
+    ("Slip", 3),
+    ("Ponton", 4),
 ]
 
 GRAVITES = [
