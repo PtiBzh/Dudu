@@ -98,6 +98,14 @@ class ListePosteTests(PosteFixture):
         self.assertContains(reponse, "Accueil des gens")
         self.assertNotContains(reponse, "Manutention remorque planches")
 
+    def test_les_filtres_relancent_tout_seuls(self):
+        """Listes déroulantes et recherche appliquées sans bouton
+        Filtrer : le socle js/filtres.js est là, le bouton n'y est
+        plus. La recherche texte part après une micro-pause."""
+        reponse = self.client.get(reverse("postes"))
+        self.assertContains(reponse, "js/filtres.js")
+        self.assertNotContains(reponse, '<button type="submit">Filtrer')
+
     def test_recherche_texte(self):
         self.client.post(reverse("poste_creer"), self.donnees_poste())
         reponse = self.client.get(reverse("postes"), {"q": "vestiaire"})

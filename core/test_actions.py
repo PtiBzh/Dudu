@@ -259,6 +259,14 @@ class ListeActionTests(ActionFixture):
             reponse, "Sortir les planches sans se cogner la tête"
         )
 
+    def test_les_filtres_relancent_tout_seuls(self):
+        """Listes déroulantes et recherche appliquées sans bouton
+        Filtrer : le socle js/filtres.js est là, le bouton n'y est
+        plus. La recherche texte part après une micro-pause."""
+        reponse = self.client.get(reverse("actions"))
+        self.assertContains(reponse, "js/filtres.js")
+        self.assertNotContains(reponse, '<button type="submit">Filtrer')
+
     def test_le_poste_affiche_ses_actions(self):
         self.creer_action()
         reponse = self.client.get(

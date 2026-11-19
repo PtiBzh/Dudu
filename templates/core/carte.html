@@ -38,7 +38,8 @@ actions ouvertes. Mêmes filtres que la vue liste.</p>
     <option value="archives" {% if archivage == "archives" %}selected{% endif %}>Archivés</option>
     <option value="tous" {% if archivage == "tous" %}selected{% endif %}>Tous</option>
   </select>
-  <button type="submit">Filtrer</button>
+  <!-- Les filtres relancent la page tout seuls (js/filtres.js) :
+       plus besoin de bouton Filtrer, ni de touche Entrée. -->
 </form>
 
 <div id="carte" class="boite-carte"
@@ -49,6 +50,7 @@ actions ouvertes. Mêmes filtres que la vue liste.</p>
 {{ donnees_carte|json_script:"donnees-carte" }}
 {% endblock %}
 {% block scripts %}
+<script src="{% static 'js/filtres.js' %}"></script>
 <script src="{% static 'vendor/maplibre-gl.js' %}"></script>
 <script src="{% static 'js/fond-carte.js' %}"></script>
 <script src="{% static 'js/carte.js' %}"></script>
