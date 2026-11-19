@@ -36,8 +36,8 @@ Vestiaire mono.
 
 - Nom, description
 - Auteur, date de création
-- Lieu (jeu placé par défaut : Accueil, Hangar, Parc à bateaux,
-  Slip — liste modifiable dans l'admin), sert de filtre rapide
+- Lieu (jeu placé par défaut : Accueil, Parc à bateaux, Slip,
+  Ponton — liste modifiable dans l'admin), sert de filtre rapide
 - **Position sur la carte** : unique, obligatoire à la création
 - **Statut de satisfaction** : liste de valeurs (jeu placé par défaut :
   Satisfaisant / À améliorer / Critique), modifiable dans l'admin,
