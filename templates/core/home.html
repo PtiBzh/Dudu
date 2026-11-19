@@ -24,7 +24,5 @@
   </p>
   <p class="apercu">{% if derniere_revue %}Dernière revue :
   <a href="{% url 'revue_detail' derniere_revue.pk %}">{{ derniere_revue.date|date:"j F Y" }}</a>.{% else %}Aucune revue enregistrée pour l'instant.{% endif %}</p>
-  <p class="apercu">Photos (M5) et plans de bâtiments (M6)
-  arrivent aux jalons suivants.</p>
 </section>
 {% endblock %}
