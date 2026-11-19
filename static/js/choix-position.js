@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   var champLat = document.querySelector(".coord-lat");
   var champLng = document.querySelector(".coord-lng");
+  var champZoom = document.querySelector(".coord-zoom");
   var annonce = document.getElementById("position-choisie");
   if (champLat === null || champLng === null) return;
 
@@ -26,6 +27,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }));
   window.DUDU_DEBLOQUE_GLISSE_FIREFOX(carte);
+
+  /* Paramètres : la molette de la mini-carte écrit le zoom du
+   * formulaire (champ coord-zoom absent sur les autres pages). */
+  if (champZoom !== null) {
+    carte.on("zoomend", function () {
+      champZoom.value = Math.round(carte.getZoom() * 10) / 10;
+    });
+  }
 
   /* Plans de bâtiments sous le marqueur : situer un poste sans voir
    * le Hangar, c'est dur. Pas de popup au clic sur un plan : le clic

@@ -1,31 +1,48 @@
 {% extends "base.html" %}
+{% load static %}
 {% block titre %}Paramètres{% endblock %}
+{% block styles %}<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">{% endblock %}
 {% block contenu %}
 <section>
   <h1>Paramètres du club</h1>
   <p class="apercu">Les listes qui structurent les postes et la carte.
-  Une valeur citée par des postes ou des revues ne disparaît jamais ;
-  l'ordre d'affichage guide les formulaires.</p>
+  Le libellé se change sur place, l'ordre se règle en glissant les
+  lignes. Une valeur citée par des postes ou des revues ne disparaît
+  jamais.</p>
 
   <div class="grille-parametres">
     {% for liste in listes %}
     <article class="carte-param">
       <h2>{{ liste.titre }}</h2>
+      <form class="forme-ordre" method="post"
+            action="{% url 'parametres_ordre' liste.slug %}">
+        {% csrf_token %}
+        <input type="hidden" name="ordre" class="ordre-serialise" value="">
+      </form>
       <ul class="liste-valeurs">
         {% for valeur in liste.valeurs %}
-        <li class="ligne-valeur">
-          {% if liste.avec_couleur %}
-          <span class="pastille-couleur" style="background: {{ valeur.couleur }}" title="{{ valeur.couleur }}"></span>
-          {% endif %}
-          <span class="nom">{{ valeur }}</span>
-          <span class="ordre-valeur" title="Ordre d'affichage">n° {{ valeur.ordre }}</span>
+        <li class="ligne-valeur" data-pk="{{ valeur.pk }}">
+          <span class="poignee-glisser" title="Glisser pour réordonner">⠿</span>
+          <form class="form-ligne" method="post"
+                action="{% url 'parametres_valeur_modifier' liste.slug valeur.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="ordre" value="{{ valeur.ordre }}">
+            {% if liste.avec_couleur %}
+            <input type="color" name="couleur" value="{{ valeur.couleur }}" class="choix-couleur"
+                   title="Couleur du marqueur" aria-label="Couleur"
+                   onchange="this.form.requestSubmit()">
+            {% endif %}
+            <input class="edition-libelle" type="text"
+                   name="{{ liste.champ_texte }}" aria-label="Libellé"
+                   value="{% if liste.slug == 'lieux' %}{{ valeur.nom }}{% else %}{{ valeur.libelle }}{% endif %}">
+            <button class="bouton-check" type="submit" title="Enregistrer">✓</button>
+          </form>
           {% if valeur.postes.count %}
           <span class="chip chip-usage">{{ valeur.postes.count }} poste{{ valeur.postes.count|pluralize }}</span>
           {% else %}
           <span class="chip chip-usage libre" title="Aucun poste ne l'utilise">libre</span>
           {% endif %}
           <span class="actions-ligne">
-            <a href="{% url 'parametres_valeur_modifier' liste.slug valeur.pk %}">Modifier</a>
             <form method="post" action="{% url 'parametres_valeur_supprimer' liste.slug valeur.pk %}"
                   onsubmit="return confirm('Retirer « {{ valeur|escapejs }} » ?')">
               {% csrf_token %}
@@ -42,11 +59,15 @@
         {% csrf_token %}
         <div class="zone-ajout">
           {% for champ in liste.form.visible_fields %}
+          {% if champ.name == "ordre" %}
+          <input type="hidden" name="ordre" value="{{ liste.prochain_ordre }}">
+          {% else %}
           <span class="minerale">
             <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
             {{ champ }}
             {% for erreur in champ.errors %}<span class="erreur">{{ erreur }}</span>{% endfor %}
           </span>
+          {% endif %}
           {% endfor %}
           <button class="bouton discret" type="submit">Ajouter</button>
         </div>
@@ -56,8 +77,14 @@
 
     <article class="carte-param entiere">
       <h2>Carte</h2>
-      <p class="apercu">Centre et zoom initiaux de toutes les cartes du club
-      (grande carte, mini-cartes de saisie, éditeurs de plans).</p>
+      <p class="apercu">Centre et zoom initiaux de toutes les cartes du
+      club (grande carte, mini-cartes de saisie, éditeurs de plans).
+      Place la vue comme tu la veux, puis enregistre : un clic ou un
+      marqueur déplacé fixe le centre, la molette fixe le zoom.</p>
+      <div id="mini-carte" class="mini-carte"
+           data-lat="{{ centre.0 }}"
+           data-lng="{{ centre.1 }}"
+           data-zoom="{{ zoom }}"></div>
       <form method="post" action="{% url 'parametres_carte' %}">
         {% csrf_token %}
         <div class="zone-ajout">
@@ -71,7 +98,15 @@
           <button class="bouton" type="submit">Enregistrer</button>
         </div>
       </form>
+      <p id="position-choisie" class="apercu"></p>
+      {{ plans|json_script:"donnees-plans" }}
     </article>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/fond-carte.js' %}"></script>
+<script src="{% static 'js/choix-position.js' %}"></script>
+<script src="{% static 'js/ordre-valeurs.js' %}"></script>
 {% endblock %}
