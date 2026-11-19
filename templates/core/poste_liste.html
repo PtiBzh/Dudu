@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block titre %}Postes{% endblock %}
 {% block contenu %}
 <section>
@@ -34,7 +35,8 @@
       <option value="archives" {% if archivage == "archives" %}selected{% endif %}>Archivés</option>
       <option value="tous" {% if archivage == "tous" %}selected{% endif %}>Tous</option>
     </select>
-    <button type="submit">Filtrer</button>
+    <!-- Les filtres relancent la page tout seuls (js/filtres.js) :
+         plus besoin de bouton Filtrer, ni de touche Entrée. -->
   </form>
 
   {% if postes %}
@@ -68,4 +70,7 @@
   décrire ce qui gêne au quotidien.</p>
   {% endif %}
 </section>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/filtres.js' %}"></script>
 {% endblock %}

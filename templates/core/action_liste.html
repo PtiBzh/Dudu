@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block titre %}Actions{% endblock %}
 {% block contenu %}
 <section>
@@ -26,7 +27,8 @@
       <input type="checkbox" name="retard" value="1" {% if retard_selection %}checked{% endif %}>
       en retard seulement
     </label>
-    <button type="submit">Filtrer</button>
+    <!-- Les filtres relancent la page tout seuls (js/filtres.js) :
+         plus besoin de bouton Filtrer, ni de touche Entrée. -->
   </form>
 
   {% if actions %}
@@ -54,4 +56,7 @@
   en urgence, l'animateur peut en créer une depuis la fiche d'un poste.</p>
   {% endif %}
 </section>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/filtres.js' %}"></script>
 {% endblock %}
