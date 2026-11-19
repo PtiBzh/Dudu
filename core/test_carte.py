@@ -94,6 +94,14 @@ class CarteVueTests(CarteFixture):
         response = self.client.get(reverse("carte"))
         self.assertNotContains(response, "Accueil des gens")
 
+    def test_les_filtres_relancent_tout_seuls(self):
+        """Listes déroulantes et recherche appliquées sans bouton
+        Filtrer : le socle js/filtres.js est là, le bouton n'y est
+        plus. La recherche texte part après une micro-pause."""
+        response = self.client.get(reverse("carte"))
+        self.assertContains(response, "js/filtres.js")
+        self.assertNotContains(response, '<button type="submit">Filtrer')
+
     def test_recherche_filtrer_la_carte(self):
         self.client.post(reverse("poste_creer"), self.donnees_poste())
         response = self.client.get(reverse("carte"), {"q": "Manutention"})
