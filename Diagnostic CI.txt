@@ -1,0 +1,189 @@
+Creating test database for alias 'default'...
+/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+  mw_instance = middleware(adapted_handler)
+......................F..E.EFEEF................................../opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /home/runner/work/Dudu/Dudu/staticfiles/
+  mw_instance = middleware(adapted_handler)
+...................................................................................................................................
+======================================================================
+ERROR: test_demarrer_passe_en_cours (core.test_actions.StatutRapideTests.test_demarrer_passe_en_cours)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 305, in test_demarrer_passe_en_cours
+    reponse = self.clic(action, "en_cours")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 299, in clic
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/views.py", line 597, in action_statut
+    f"Action {action.get_statut_display.lower()}.",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'functools.partial' object has no attribute 'lower'
+
+======================================================================
+ERROR: test_le_responsable_a_le_droit_aussi (core.test_actions.StatutRapideTests.test_le_responsable_a_le_droit_aussi)
+Le responsable n'est pas animateur : le raccourci est
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 348, in test_le_responsable_a_le_droit_aussi
+    reponse = self.clic(action, "en_cours")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 299, in clic
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/views.py", line 597, in action_statut
+    f"Action {action.get_statut_display.lower()}.",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'functools.partial' object has no attribute 'lower'
+
+======================================================================
+ERROR: test_remettre_a_faire_depuis_en_cours (core.test_actions.StatutRapideTests.test_remettre_a_faire_depuis_en_cours)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 338, in test_remettre_a_faire_depuis_en_cours
+    self.clic(action, "en_cours")
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 299, in clic
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/views.py", line 597, in action_statut
+    f"Action {action.get_statut_display.lower()}.",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'functools.partial' object has no attribute 'lower'
+
+======================================================================
+ERROR: test_rouvrir_efface_la_date_de_cloture (core.test_actions.StatutRapideTests.test_rouvrir_efface_la_date_de_cloture)
+La clôture se date, la réouverture l'efface : c'est ce qui
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 331, in test_rouvrir_efface_la_date_de_cloture
+    self.clic(action, "rouvrir")
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 299, in clic
+    return self.client.post(
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1156, in post
+    response = super().post(
+               ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 499, in post
+    return self.generic(
+           ^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 671, in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 1090, in request
+    self.check_exception(response)
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/test/client.py", line 805, in check_exception
+    raise exc_value
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/site-packages/django/contrib/auth/decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/Dudu/Dudu/core/views.py", line 597, in action_statut
+    f"Action {action.get_statut_display.lower()}.",
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'functools.partial' object has no attribute 'lower'
+
+======================================================================
+FAIL: test_abandonnee_n_a_pas_de_raccourci (core.test_actions.StatutRapideTests.test_abandonnee_n_a_pas_de_raccourci)
+Abandonner exige un motif : ça passe par le formulaire,
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 369, in test_abandonnee_n_a_pas_de_raccourci
+    with self.assertRaises(Http404):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Http404 not raised
+
+======================================================================
+FAIL: test_le_tiers_est_refuse (core.test_actions.StatutRapideTests.test_le_tiers_est_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 357, in test_le_tiers_est_refuse
+    with self.assertRaises(PermissionDenied):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: PermissionDenied not raised
+
+======================================================================
+FAIL: test_statut_fantasque_refuse (core.test_actions.StatutRapideTests.test_statut_fantasque_refuse)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/runner/work/Dudu/Dudu/core/test_actions.py", line 376, in test_statut_fantasque_refuse
+    with self.assertRaises(Http404):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Http404 not raised
+
+----------------------------------------------------------------------
+Ran 197 tests in 81.006s
+
+FAILED (failures=3, errors=4)
+Destroying test database for alias 'default'...
+Found 197 test(s).
+System check identified no issues (0 silenced).
