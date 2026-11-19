@@ -11,6 +11,23 @@
     {% if poste.lieu %}· {{ poste.lieu }}{% endif %}
   </p>
 
+  <div class="actions">
+    {% if modifiable %}
+      <a class="bouton" href="{% url 'poste_modifier' poste.pk %}">Modifier</a>
+      <form class="ligne" method="post" action="{% url 'poste_archiver' poste.pk %}">
+        {% csrf_token %}
+        {% if poste.archive %}
+        <button class="bouton discret" type="submit">Désarchiver</button>
+        {% else %}
+        <button class="bouton discret" type="submit">Archiver</button>
+        {% endif %}
+      </form>
+    {% endif %}
+    {% if user.is_animateur %}
+      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}">Nouvelle action</a>
+    {% endif %}
+  </div>
+
   {% if poste.description %}
   <p>{{ poste.description|linebreaks }}</p>
   {% endif %}
@@ -109,21 +126,5 @@
   {% endfor %}
   {% endif %}
 
-  <div class="actions">
-    {% if modifiable %}
-      <a class="bouton" href="{% url 'poste_modifier' poste.pk %}">Modifier</a>
-      <form class="ligne" method="post" action="{% url 'poste_archiver' poste.pk %}">
-        {% csrf_token %}
-        {% if poste.archive %}
-        <button class="bouton discret" type="submit">Désarchiver</button>
-        {% else %}
-        <button class="bouton discret" type="submit">Archiver</button>
-        {% endif %}
-      </form>
-    {% endif %}
-    {% if user.is_animateur %}
-      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}">Nouvelle action</a>
-    {% endif %}
-  </div>
 </section>
 {% endblock %}
