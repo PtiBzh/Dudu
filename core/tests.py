@@ -1,7 +1,13 @@
 """Tests du socle M0 : comptes, rôle animateur, authentification."""
 from django.test import TestCase
 
-from .models import Utilisateur
+from .models import (
+    Lieu,
+    Utilisateur,
+    ValeurFrequence,
+    ValeurGravite,
+    ValeurSatisfaction,
+)
 
 
 class UtilisateurTests(TestCase):
@@ -49,3 +55,23 @@ class AuthentificationTests(TestCase):
         reponse = self.client.post("/deconnexion/")
         self.assertEqual(reponse.status_code, 302)
         self.assertIn("connexion", reponse["Location"])
+
+class JeuDeValeursTests(TestCase):
+    """La migration 0010 place un jeu de valeurs par défaut quand les
+    listes sont vides ; tout reste modifiable dans l'admin (spec)."""
+
+    def test_jeu_defaut_present(self):
+        self.assertTrue(
+            ValeurGravite.objects.filter(libelle="Élevée").exists()
+        )
+        self.assertTrue(
+            ValeurFrequence.objects.filter(libelle="Quotidienne").exists()
+        )
+        self.assertTrue(
+            ValeurSatisfaction.objects.filter(libelle="À améliorer").exists()
+        )
+        self.assertTrue(Lieu.objects.filter(nom="Hangar").exists())
+
+    def test_jeu_defaut_complet(self):
+        self.assertEqual(ValeurSatisfaction.objects.count(), 3)
+        self.assertEqual(ValeurGravite.objects.count(), 3)
