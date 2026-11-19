@@ -1,47 +1,84 @@
-/* Dudu — styles M1 : socle + postes. Minimal, sans framework, sans build. */
+/* Dudu — styles socle + M1-M8. Minimal, sans framework, sans build.
+ * Vague 2 (11/2026) : plus d'air, plus de couleurs — typo légèrement
+ * plus grande (17 px), palette élargie (touches ambre, vert, rouge,
+ * tints), cartes et tableaux réellement lisibles. */
 
 :root {
   --encre: #1c2733;
-  --papier: #f7f5f1;
-  --accent: #0d6b7c;
+  --papier: #f4f1ea;
   --clair: #ffffff;
+  --accent: #0d6b7c;
+  --accent-fonce: #0a4f5c;
+  --accent-clair: #def0f3;
   --gris: #6b7684;
-  --bord: #ddd;
+  --bord: #ddd6c9;
+  --vert: #2e7d32;
+  --vert-clair: #e3f1e4;
+  --ambre: #b26a00;
+  --ambre-clair: #fbeed3;
+  --rouge: #b3261e;
+  --rouge-clair: #fbeae9;
+  --ombre: 0 1px 4px rgba(28, 39, 51, 0.08);
+  --ombre-franche: 0 2px 10px rgba(28, 39, 51, 0.12);
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  font-size: 1.0625rem;            /* ≈17 px : lecture plus ample */
+  line-height: 1.55;
   color: var(--encre);
   background: var(--papier);
 }
 
 main {
-  max-width: 60rem;
+  max-width: 64rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding: 1.75rem 1.25rem 3.5rem;
 }
 
-h1 { font-size: 1.6rem; margin-top: 0.2rem; }
-h2 { font-size: 1.1rem; color: var(--accent); }
+h1 { font-size: 1.8rem; margin-top: 0.2rem; }
+
+h2 {
+  font-size: 1.2rem;
+  color: var(--accent);
+  margin: 2rem 0 0.75rem;
+}
 
 a { color: var(--accent); }
+a:hover { color: var(--accent-fonce); }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
 
 /* Barre de navigation */
 .barre {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.6rem 1rem;
+  padding: 0.7rem 1.25rem;
   background: var(--clair);
-  border-bottom: 1px solid var(--bord);
+  border-bottom: 3px solid var(--accent);
+  box-shadow: var(--ombre);
+  flex-wrap: wrap;
 }
 
-.barre a { color: var(--encre); text-decoration: none; }
-.barre a.marque { font-weight: 700; color: var(--accent); }
-.barre a[aria-current="page"] { font-weight: 600; }
+.barre a { color: var(--encre); text-decoration: none; padding: 0.15rem 0.2rem; border-radius: 0.3rem; }
+.barre a:hover { background: var(--accent-clair); }
+.barre a.marque { font-weight: 700; font-size: 1.15rem; color: var(--accent); }
+.barre a[aria-current="page"] {
+  font-weight: 700;
+  color: var(--accent-fonce);
+  background: var(--accent-clair);
+}
 
 .barre .espace { flex: 1; }
 .barre .qui { color: var(--gris); }
@@ -51,8 +88,8 @@ a { color: var(--accent); }
   background: var(--accent);
   color: var(--clair);
   border-radius: 1rem;
-  padding: 0.05rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 0.08rem 0.55rem;
+  font-size: 0.78rem;
 }
 
 .ligne { display: inline; }
@@ -60,65 +97,91 @@ a { color: var(--accent); }
 button.lien {
   background: none;
   border: none;
-  color: var(--gris);
+  color: var(--accent);
   text-decoration: underline;
   cursor: pointer;
   font: inherit;
+  padding: 0;
 }
+button.lien:hover { color: var(--accent-fonce); }
+button.lien.danger { color: var(--rouge); }
+button.lien.danger:hover { text-decoration: none; background: var(--rouge-clair); }
 
 /* Boîtes et formulaires */
 .boite {
   background: var(--clair);
   border: 1px solid var(--bord);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  max-width: 26rem;
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.75rem;
+  max-width: 30rem;
   margin: 1.5rem auto;
+  box-shadow: var(--ombre);
 }
 
-.boite.large { max-width: 34rem; }
+.boite.large { max-width: 46rem; }
 
 .apercu { color: var(--gris); }
-.erreur { color: #b3261e; }
-.champ-erreur label { color: #b3261e; }
+.erreur { color: var(--rouge); }
+.champ-erreur label { color: var(--rouge); }
+.champ-erreur input, .champ-erreur select, .champ-erreur textarea { border-color: var(--rouge); }
 
 input, select, textarea {
   font: inherit;
-  padding: 0.45rem 0.6rem;
+  padding: 0.5rem 0.65rem;
   border: 1px solid var(--bord);
-  border-radius: 0.35rem;
+  border-radius: 0.45rem;
   background: var(--clair);
   max-width: 100%;
 }
 
+input:hover, select:hover, textarea:hover { border-color: var(--accent); }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
 textarea { width: 100%; }
+
+input[type="color"] {
+  padding: 0.15rem;
+  width: 3rem;
+  height: 2.1rem;
+  cursor: pointer;
+}
+
+input[type="number"] { width: 6rem; }
+
+input[type="checkbox"] { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
 
 .bouton {
   display: inline-block;
   background: var(--accent);
   color: var(--clair);
   border: none;
-  border-radius: 0.35rem;
-  padding: 0.5rem 0.9rem;
+  border-radius: 0.45rem;
+  padding: 0.55rem 1rem;
   text-decoration: none;
   font: inherit;
   cursor: pointer;
+  box-shadow: var(--ombre);
+  transition: background 0.15s;
 }
+.bouton:hover { background: var(--accent-fonce); color: var(--clair); }
 
 .bouton.discret {
-  background: var(--papier);
-  color: var(--encre);
-  border: 1px solid var(--bord);
+  background: var(--clair);
+  color: var(--accent-fonce);
+  border: 1px solid var(--accent);
+  box-shadow: none;
 }
+.bouton.discret:hover { background: var(--accent-clair); color: var(--accent-fonce); }
 
 .lien-retour { margin-left: 1rem; }
 
-/* Liste des postes */
+/* Listes (postes, actions…) */
 .entete-liste {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .filtres {
@@ -133,12 +196,14 @@ textarea { width: 100%; }
   border-collapse: collapse;
   background: var(--clair);
   border: 1px solid var(--bord);
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
+  box-shadow: var(--ombre);
+  overflow: hidden;
 }
 
 .table th, .table td {
   text-align: left;
-  padding: 0.55rem 0.7rem;
+  padding: 0.6rem 0.75rem;
   border-bottom: 1px solid var(--bord);
 }
 
@@ -146,8 +211,11 @@ textarea { width: 100%; }
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--gris);
+  color: var(--accent-fonce);
+  background: var(--accent-clair);
 }
+
+.table tbody tr:hover td { background: #f2f8f9; }
 
 .table tbody tr:last-child td { border-bottom: none; }
 
@@ -155,8 +223,8 @@ textarea { width: 100%; }
 .chip {
   display: inline-block;
   border-radius: 1rem;
-  padding: 0.05rem 0.55rem;
-  font-size: 0.75rem;
+  padding: 0.08rem 0.6rem;
+  font-size: 0.78rem;
   background: #e8eaed;
   color: var(--encre);
 }
@@ -172,11 +240,12 @@ textarea { width: 100%; }
 .chip.statut-faite { background: #c6ddb6; color: #2e5c1e; }
 .chip.statut-abandonnee { background: #d9d4cc; color: #615c53; }
 
-.chip.retard-chip { background: #b3261e; color: var(--clair); }
+.chip.retard-chip { background: var(--rouge); color: var(--clair); }
 
-tr.en-retard td { background: #fbeae9; }
+tr.en-retard td { background: var(--rouge-clair); }
+tr.en-retard:hover td { background: #f6dcd9; }
 
-.chip.hors-revue { background: #efe6d8; color: #7a5c1e; }
+.chip.hors-revue { background: var(--ambre-clair); color: #7a5c1e; }
 
 /* Actions d'un poste (fiche) */
 .liste-actions {
@@ -191,7 +260,10 @@ tr.en-retard td { background: #fbeae9; }
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.4rem;
 }
+.liste-actions li:hover { background: #f2f8f9; }
 
 .retard-case {
   display: inline-flex;
@@ -200,7 +272,7 @@ tr.en-retard td { background: #fbeae9; }
   color: var(--gris);
 }
 
-.compteurs strong.retard { color: #b3261e; }
+.compteurs strong.retard { color: var(--rouge); }
 
 /* Fiche détail */
 .fiche {
@@ -209,50 +281,72 @@ tr.en-retard td { background: #fbeae9; }
   gap: 0.35rem 1.5rem;
   background: var(--clair);
   border: 1px solid var(--bord);
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   padding: 1rem 1.25rem;
+  box-shadow: var(--ombre);
 }
 
-.fiche dt { color: var(--gris); font-size: 0.85rem; padding: 0.15rem 0; }
+.fiche dt { color: var(--gris); font-size: 0.88rem; padding: 0.15rem 0; }
 .fiche dd { margin: 0; padding: 0.15rem 0; }
 
-.actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; align-items: center; }
+.actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
 
 /* Compteurs du tableau de bord */
 .compteurs {
   list-style: none;
-  padding: 0;
   display: flex;
-  gap: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
   background: var(--clair);
   border: 1px solid var(--bord);
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.4rem;
+  margin: 1.25rem 0;
+  box-shadow: var(--ombre);
 }
 
-.compteurs strong { font-size: 1.4rem; display: block; color: var(--accent); }
+.compteurs li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-right: 1rem;
+  border-right: 1px solid var(--bord);
+}
+.compteurs li:last-child { border-right: none; padding-right: 0; }
+
+.compteurs li::before { content: ""; height: 4px; width: 2.5rem; border-radius: 2px; background: var(--accent); }
+
+.compteurs strong { font-size: 1.5rem; display: block; color: var(--accent); line-height: 1.1; }
+
+.repartition { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.75rem 0 1.5rem; }
 
 /* Messages Django */
 .messages {
   list-style: none;
   padding: 0;
+  margin: 0.75rem 0;
 }
 
 .messages li {
-  background: var(--clair);
-  border: 1px solid var(--accent);
-  border-radius: 0.4rem;
-  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  padding: 0.65rem 1.1rem;
   margin: 0.5rem 0;
+  border: 1px solid var(--accent);
+  background: var(--accent-clair);
 }
 
-/* Carte (M3) --------------------------------------------------------------- */
+.messages li.success { border-color: var(--vert); background: var(--vert-clair); color: var(--vert); }
+.messages li.error, .messages li.danger { border-color: var(--rouge); background: var(--rouge-clair); color: var(--rouge); }
+.messages li.warning { border-color: var(--ambre); background: var(--ambre-clair); color: var(--ambre); }
+
+/* Carte (M3) ------------------------------------------------------------ */
 
 .boite-carte,
 .mini-carte {
   border: 1px solid var(--bord);
-  border-radius: 0.5rem;
+  border-radius: 0.6rem;
   overflow: hidden;
+  box-shadow: var(--ombre);
 }
 
 .boite-carte { height: 32rem; }
@@ -267,41 +361,43 @@ tr.en-retard td { background: #fbeae9; }
  * bâtiment reste cliquable. */
 .etiquette-plan {
   pointer-events: none;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   white-space: nowrap;
   color: #fff;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(13, 56, 66, 0.72);
   border-radius: 4px;
-  padding: 1px 6px;
+  padding: 1px 7px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
 
 .obligatoire {
-  color: #b3261e;
+  color: var(--rouge);
   font-size: 0.75rem;
   text-transform: uppercase;
   margin-left: 0.3rem;
 }
 
 .facultatif {
-  color: #6b7684;
-  font-size: 0.75rem;
+  color: var(--gris);
+  font-size: 0.78rem;
   font-weight: normal;
   margin-left: 0.3rem;
 }
 
-.groupe-champ { margin: 0.9rem 0; }
+.groupe-champ { margin: 1rem 0; }
 .groupe-champ label { display: block; font-weight: 600; margin-bottom: 0.4rem; }
+.groupe-champ input:not([type="checkbox"]):not([type="color"]):not([type="number"]),
+.groupe-champ select { width: 100%; }
 
-/* Photos (M5) --------------------------------------------------------------- */
+/* Photos (M5) ----------------------------------------------------------- */
 
 .photo {
   width: 100%;
   height: auto;
   display: block;
   border: 1px solid var(--bord);
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
 }
 
 figure { margin: 0; }
@@ -325,9 +421,7 @@ figure { margin: 0; }
 .galerie figcaption { margin-top: 0.25rem; }
 
 /* Avant / après : deux colonnes de même largeur, toutes les photos
- * empilées à plat (plusieurs « avant » ET plusieurs « après »), et un
- * cadre pointillé quand il manque une photo — la comparaison garde
- * toujours sa géométrie. */
+ * empilées à plat, et un cadre pointillé quand il manque une photo. */
 .cote-a-cote {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -347,7 +441,7 @@ figure { margin: 0; }
 .photo-absente {
   aspect-ratio: 4 / 3;
   border: 1px dashed var(--bord);
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,7 +449,7 @@ figure { margin: 0; }
   text-align: center;
 }
 
-/* Plans de bâtiments (M6) ---------------------------------------------------- */
+/* Plans de bâtiments (M6) -------------------------------------------------- */
 
 .barre-outils {
   display: flex;
@@ -381,13 +475,103 @@ figure { margin: 0; }
 
 .table .badge { white-space: nowrap; }
 
-/* Équipe & paramètres (M8) --------------------------------------------------- */
+/* Équipe (M8) -------------------------------------------------------------- */
 
 .pastille-couleur {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   border: 1px solid var(--bord);
   border-radius: 50%;
   vertical-align: -2px;
+  flex-shrink: 0;
 }
+
+/* Paramètres (M8, vague ergo) : une carte par liste, tout regroupé,
+ * plus de va-et-vient entre sections. */
+.grille-parametres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+  margin: 1.5rem 0;
+}
+
+.carte-param {
+  background: var(--clair);
+  border: 1px solid var(--bord);
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem 1.25rem;
+  box-shadow: var(--ombre);
+}
+
+.carte-param h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.carte-param h2::before {
+  content: "";
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.carte-param.entiere { grid-column: 1 / -1; }
+
+.liste-valeurs {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.ligne-valeur {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--bord);
+  border-radius: 0.5rem;
+  background: #faf8f3;
+}
+
+.ligne-valeur:hover { border-color: var(--accent); }
+
+.ligne-valeur .nom { font-weight: 600; flex: 1; min-width: 6rem; }
+
+.ligne-valeur .actions-ligne { margin-left: auto; white-space: nowrap; }
+.ligne-valeur .actions-ligne form { display: inline; }
+
+.ordre-valeur {
+  color: var(--gris);
+  font-size: 0.78rem;
+  background: #eef1f2;
+  border-radius: 0.4rem;
+  padding: 0.05rem 0.45rem;
+}
+
+.chip-usage { background: var(--vert-clair); color: var(--vert); }
+.chip-usage.libre { background: #eef1f2; color: var(--gris); }
+
+.zone-ajout {
+  background: var(--accent-clair);
+  border-radius: 0.5rem;
+  padding: 0.8rem 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  align-items: flex-end;
+}
+
+.zone-ajout .minerale { display: flex; flex-direction: column; gap: 0.15rem; }
+.zone-ajout .minerale label { font-size: 0.75rem; font-weight: 600; color: var(--gris); text-transform: uppercase; letter-spacing: 0.03em; }
+.zone-ajout .minerale input { width: auto; }
+
+.zone-ajout .bouton { margin-left: auto; }
