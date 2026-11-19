@@ -56,7 +56,9 @@ erDiagram
 - **ChangementSatisfaction** : revue, poste, ancienne valeur,
   nouvelle valeur — journal historique
 - **ValeurSatisfaction / ValeurGravite / ValeurFrequence** : listes
-  modifiables dans l'admin (libellé, ordre, couleur du marqueur)
+  modifiables dans l'admin (libellé, ordre, couleur du marqueur) ;
+  un jeu de valeurs par défaut est placé par la migration de données
+  0010, seulement si la liste est vide
 - **PlanBatiment** : nom, étiquette (ex. « Hangar — étage »), nature
   au choix :
   - **forme dessinée** : polygone GeoJSON tracé à la souris (Terra Draw)

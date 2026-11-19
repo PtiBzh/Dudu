@@ -36,16 +36,18 @@ Vestiaire mono.
 
 - Nom, description
 - Auteur, date de création
-- Lieu (Hangar, Parc, Accueil… liste modifiable dans l'admin),
-  sert de filtre rapide
+- Lieu (jeu placé par défaut : Accueil, Hangar, Parc à bateaux,
+  Slip — liste modifiable dans l'admin), sert de filtre rapide
 - **Position sur la carte** : unique, obligatoire à la création
-- **Statut de satisfaction** : liste de valeurs modifiable dans l'admin
-  (valeurs par défaut : Satisfaisant / À améliorer / Critique),
+- **Statut de satisfaction** : liste de valeurs (jeu placé par défaut :
+  Satisfaisant / À améliorer / Critique), modifiable dans l'admin,
   mis à jour uniquement en revue collégiale ; chaque changement
   demandé en revue est journalisé
 - **Bloc Santé / Sécurité** (distinct de la satisfaction) :
   - Gravité potentielle et fréquence d'exposition : deux listes
-    déroulantes (modifiables dans l'admin)
+    déroulantes (jeux placés par défaut : Faible / Modérée / Élevée
+    et Occasionnelle / Hebdomadaire / Quotidienne — modifiables
+    dans l'admin)
   - Origine du signalement : constat / presqu'accident / accident
   - Modifiable à tout moment (traduit un état constaté, pas une
     décision collective)
@@ -123,3 +125,11 @@ La liste et la carte sont les deux vues de la même donnée.
   consultation
 - **Sauvegarde** : copie quotidienne automatique de la base et des
   photos vers un second emplacement (script + cron dans le conteneur)
+
+
+## Jeux de valeurs par défaut
+
+Les listes de référence (lieux, gravités, fréquences, satisfactions)
+sont placées par une migration de données (0010) **uniquement si la
+liste est vide** : les saisies existantes ne sont ni écrasées ni
+dupliquées, et tout reste modifiable dans l'admin.
