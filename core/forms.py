@@ -354,7 +354,15 @@ class ReglagesForm(forms.ModelForm):
                 }
             ),
             "zoom_carte": forms.NumberInput(
-                attrs={"min": 2, "max": 19, "class": "coord-zoom"}
+                # step="any" : comme pour latitude/longitude, sinon la
+                # validation HTML5 refuse les zooms décimaux (14,6) que
+                # la mini-carte écrit à chaque molette.
+                attrs={
+                    "step": "any",
+                    "min": 2,
+                    "max": 19,
+                    "class": "coord-zoom",
+                }
             ),
         }
 
