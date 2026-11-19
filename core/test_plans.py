@@ -388,3 +388,39 @@ class MinisCartesTests(PlanFixture):
         self.assertContains(reponse, "Hangar")
         # décimaux en point, pas en virgule (le vrai bug de l'été)
         self.assertContains(reponse, 'data-lat="48.420000"')
+
+
+@override_settings(MEDIA_ROOT=MEDIAS_TESTS)
+class ReperesDessinTests(PlanFixture):
+    """Tracer un nouveau plan se fait parmi les bâtiments déjà en
+    place : l'éditeur les affiche sous le tracé, avec leur nom — sauf
+    le plan en cours (il a sa relecture à lui) et les inachevés."""
+
+    def test_les_autres_plans_servent_de_reperes(self):
+        vestiaire = self.plan_forme(nom="Vestiaire", forme=POLYGONE)
+        plan_en_cours = self.plan_forme(nom="Hangar")
+        reponse = self.client.get(
+            reverse("plan_dessin", args=[plan_en_cours.pk])
+        )
+        self.assertContains(reponse, "donnees-plans")
+        self.assertContains(reponse, f'"id": {vestiaire.pk}')
+        self.assertContains(reponse, "Vestiaire")
+
+    def test_le_plan_en_cours_n_est_pas_son_propre_repere(self):
+        vestiaire = self.plan_forme(nom="Vestiaire", forme=POLYGONE)
+        reponse = self.client.get(
+            reverse("plan_dessin", args=[vestiaire.pk])
+        )
+        self.assertNotContains(reponse, f'"id": {vestiaire.pk}')
+
+    def test_les_inacheves_ne_s_envoient_pas(self):
+        """Forme jamais tracée, image jamais calée : rien à montrer,
+        l'éditeur reste tel quel."""
+        chantier = self.plan_forme(nom="Chantier en cours")
+        papier = self.plan_image(nom="Papier pas calé")
+        plan_en_cours = self.plan_forme(nom="Hangar", forme=POLYGONE)
+        reponse = self.client.get(
+            reverse("plan_dessin", args=[plan_en_cours.pk])
+        )
+        self.assertNotContains(reponse, f'"id": {chantier.pk}')
+        self.assertNotContains(reponse, f'"id": {papier.pk}')
