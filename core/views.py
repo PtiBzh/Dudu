@@ -28,10 +28,17 @@ from .fichiers import compresser_photo
 from .forms import (
     ActionCreationForm,
     ActionModificationForm,
+    LieuForm,
     PhotoForm,
     PlanForm,
     PosteForm,
+    ReglagesForm,
     RevueForm,
+    UtilisateurCreationForm,
+    UtilisateurModificationForm,
+    ValeurFrequenceForm,
+    ValeurGraviteForm,
+    ValeurSatisfactionForm,
 )
 from .models import (
     Action,
@@ -40,8 +47,10 @@ from .models import (
     Photo,
     PlanBatiment,
     Poste,
+    Reglages,
     Revue,
     Utilisateur,
+    ValeurFrequence,
     ValeurGravite,
     ValeurSatisfaction,
 )
@@ -59,6 +68,21 @@ def staff_seulement(vue):
             raise PermissionDenied(
                 "Les plans de bâtiments se gèrent côté admin "
                 "(équipe de secrétariat)."
+            )
+        return vue(request, *args, **kwargs)
+
+    return interne
+
+
+def animateur_seulement(vue):
+    """M8 : l'équipe et les paramètres du club se gèrent entre
+    animateurs — l'admin Django reste au secrétariat."""
+
+    @wraps(vue)
+    def interne(request, *args, **kwargs):
+        if not request.user.is_animateur:
+            raise PermissionDenied(
+                "L'équipe et les paramètres se gèrent entre animateurs."
             )
         return vue(request, *args, **kwargs)
 
@@ -105,11 +129,18 @@ def dec6(valeur):
 
 
 def centre_decimaux():
-    """Centre de carte initial (DUDU_CENTRE_CARTE) en point décimal."""
+    """Centre de carte initial (réglages du club, à défaut le .env)
+    en point décimal."""
+    courants = Reglages.charge()
     return (
-        dec6(settings.DUDU_CENTRE_CARTE[0]),
-        dec6(settings.DUDU_CENTRE_CARTE[1]),
+        dec6(courants.centre_latitude),
+        dec6(courants.centre_longitude),
     )
+
+
+def zoom_courant():
+    """Zoom de carte initial (réglages du club, à défaut le .env)."""
+    return Reglages.charge().zoom_carte
 
 
 def plans_pour_cartes():
@@ -193,7 +224,7 @@ def carte(request):
         "section": "carte",
         "donnees_carte": donnees_carte,
         "centre": centre_decimaux(),
-        "zoom": settings.DUDU_ZOOM_CARTE,
+        "zoom": zoom_courant(),
         "poste_cible": request.GET.get("poste", ""),
         "filtres": filtres,
         "archivage": archivage,
@@ -296,7 +327,7 @@ def poste_creer(request):
             "form": form,
             "titre": "Nouveau poste",
             "centre": centre_decimaux(),
-            "zoom": settings.DUDU_ZOOM_CARTE,
+            "zoom": zoom_courant(),
             "plans": plans_pour_cartes(),
         },
     )
@@ -323,7 +354,7 @@ def poste_modifier(request, pk):
             "poste_lat": dec6(poste.latitude),
             "poste_lng": dec6(poste.longitude),
             "centre": centre_decimaux(),
-            "zoom": settings.DUDU_ZOOM_CARTE,
+            "zoom": zoom_courant(),
             "plans": plans_pour_cartes(),
         },
     )
@@ -449,7 +480,7 @@ def action_creer(request, poste_pk):
             "poste_lng": dec6(poste.longitude),
             "revue": revue,
             "centre": centre_decimaux(),
-            "zoom": settings.DUDU_ZOOM_CARTE,
+            "zoom": zoom_courant(),
             "plans": plans_pour_cartes(),
         },
     )
@@ -493,7 +524,7 @@ def action_modifier(request, pk):
             "poste_lat": dec6(action.poste.latitude),
             "poste_lng": dec6(action.poste.longitude),
             "centre": centre_decimaux(),
-            "zoom": settings.DUDU_ZOOM_CARTE,
+            "zoom": zoom_courant(),
             "plans": plans_pour_cartes(),
         },
     )
@@ -711,7 +742,8 @@ def centre_de_coins(coins):
     """Centre d'un jeu de 4 coins [lng, lat] — pour cadrer l'éditeur
     de calage sur l'image."""
     if not coins:
-        return settings.DUDU_CENTRE_CARTE
+        courants = Reglages.charge()
+        return (courants.centre_latitude, courants.centre_longitude)
     lats = [coin[1] for coin in coins]
     lngs = [coin[0] for coin in coins]
     return (sum(lats) / len(lats), sum(lngs) / len(lngs))
@@ -838,10 +870,11 @@ def plan_dessin(request, pk):
             request,
             "Forme illisible : trace le polygone puis enregistre.",
         )
-    zoom = settings.DUDU_ZOOM_CARTE if not plan.forme else 18
+    courants = Reglages.charge()
+    zoom = courants.zoom_carte if not plan.forme else 18
     donnees_dessin = {
-        "lat": settings.DUDU_CENTRE_CARTE[0],
-        "lng": settings.DUDU_CENTRE_CARTE[1],
+        "lat": courants.centre_latitude,
+        "lng": courants.centre_longitude,
         "zoom": zoom,
         "couleur": plan.couleur,
         "forme": plan.forme,
@@ -906,7 +939,8 @@ def plan_calage(request, pk):
             request, "Calage illisible : 4 coins sur la carte, puis "
             "enregistre."
         )
-    lat, lng = settings.DUDU_CENTRE_CARTE
+    courants_calibration = Reglages.charge()
+    lat, lng = courants_calibration.centre_latitude, courants_calibration.centre_longitude
     coins = plan.coins or [
         [lng - 0.0004, lat + 0.0003],
         [lng + 0.0004, lat + 0.0003],
@@ -917,7 +951,7 @@ def plan_calage(request, pk):
     donnees_calage = {
         "lat": latitude,
         "lng": longitude,
-        "zoom": settings.DUDU_ZOOM_CARTE,
+        "zoom": courants_calibration.zoom_carte,
         "url": plan.fichier.url if plan.fichier else None,
         "coins": coins,
         "opacite": plan.opacite,
@@ -932,3 +966,246 @@ def plan_calage(request, pk):
             "donnees_calage": donnees_calage,
         },
     )
+
+
+# Équipe et paramètres (M8) ----------------------------------------------------
+# Pages intégrées à l'app, en français, pour les animateurs : plus
+# besoin de l'admin Django pour créer un compte ou régler une liste.
+
+
+LISTES_VALEURS = {
+    "lieux": {
+        "modele": Lieu,
+        "form": LieuForm,
+        "titre": "Lieux du club",
+        "singulier": "lieu",
+        "avec_couleur": False,
+    },
+    "gravites": {
+        "modele": ValeurGravite,
+        "form": ValeurGraviteForm,
+        "titre": "Gravités potentielles",
+        "singulier": "gravité",
+        "avec_couleur": True,
+    },
+    "frequences": {
+        "modele": ValeurFrequence,
+        "form": ValeurFrequenceForm,
+        "titre": "Fréquences d'exposition",
+        "singulier": "fréquence",
+        "avec_couleur": True,
+    },
+    "satisfactions": {
+        "modele": ValeurSatisfaction,
+        "form": ValeurSatisfactionForm,
+        "titre": "Statuts de satisfaction",
+        "singulier": "statut",
+        "avec_couleur": True,
+    },
+}
+
+
+def _liste_ou_404(liste):
+    descr = LISTES_VALEURS.get(liste)
+    if descr is None:
+        raise Http404("Liste de valeurs inconnue.")
+    return descr
+
+
+@login_required
+@animateur_seulement
+def equipe(request):
+    """Comptes du club : la liste, avec rôles et état d'activation."""
+    liste = Utilisateur.objects.order_by("username")
+    return render(
+        request,
+        "core/equipe_liste.html",
+        {"section": "equipe", "utilisateurs": liste},
+    )
+
+
+@login_required
+@animateur_seulement
+def equipe_creer(request):
+    """Nouveau compte : identifiant, nom, mot de passe, rôle."""
+    if request.method == "POST":
+        form = UtilisateurCreationForm(request.POST)
+        if form.is_valid():
+            utilisateur = form.save()
+            messages.success(
+                request,
+                f"Compte « {utilisateur.username} » créé.",
+            )
+            return redirect("equipe")
+    else:
+        form = UtilisateurCreationForm()
+    return render(
+        request,
+        "core/equipe_form.html",
+        {"section": "equipe", "titre": "Nouveau compte", "form": form},
+    )
+
+
+@login_required
+@animateur_seulement
+def equipe_modifier(request, pk):
+    """Édition d'un compte ; garde-fous : un animateur non staff ne
+    touche pas un compte du secrétariat, et personne ne se retire
+    lui-même son rôle ni ne désactive son propre compte."""
+    utilisateur = get_object_or_404(Utilisateur, pk=pk)
+    if utilisateur.is_staff and not request.user.is_staff:
+        raise PermissionDenied(
+            "Les comptes du secrétariat se gèrent dans l'admin Django."
+        )
+    if request.method == "POST":
+        form = UtilisateurModificationForm(request.POST, instance=utilisateur)
+        if form.is_valid():
+            donnees = form.cleaned_data
+            if utilisateur.pk == request.user.pk and (
+                not donnees["is_animateur"] or not donnees["is_active"]
+            ):
+                form.add_error(
+                    None,
+                    "Un animateur ne se retire pas lui-même son rôle "
+                    "et ne désactive pas son propre compte.",
+                )
+            else:
+                mot = donnees.get("nouveau_mot_de_passe")
+                form.save()
+                messages.success(
+                    request,
+                    f"Compte « {utilisateur.username} » mis à jour."
+                    + (" Mot de passe remplacé." if mot else ""),
+                )
+                return redirect("equipe")
+    else:
+        form = UtilisateurModificationForm(instance=utilisateur)
+    return render(
+        request,
+        "core/equipe_form.html",
+        {
+            "section": "equipe",
+            "titre": f"Modifier « {utilisateur.username} »",
+            "form": form,
+            "utilisateur": utilisateur,
+        },
+    )
+
+
+def _parametres_contexte(form_reglages=None):
+    """Contexte commun de la page Paramètres : les quatre listes de
+    valeurs (avec leur formulaire d'ajout) et les réglages de carte."""
+    classe_form = form_reglages.__class__ if form_reglages else ReglagesForm
+    return {
+        "section": "parametres",
+        "listes": [
+            {
+                "slug": slug,
+                "titre": descr["titre"],
+                "avec_couleur": descr["avec_couleur"],
+                "valeurs": descr["modele"].objects.all(),
+                "form": descr["form"](),
+            }
+            for slug, descr in LISTES_VALEURS.items()
+        ],
+        "form_reglages": form_reglages or classe_form(
+            instance=Reglages.charge()
+        ),
+    }
+
+
+@login_required
+@animateur_seulement
+def parametres(request):
+    """Les listes qui structurent les postes, et la carte du club."""
+    return render(request, "core/parametres.html", _parametres_contexte())
+
+
+@login_required
+@animateur_seulement
+def parametres_carte(request):
+    """Centre et zoom initiaux des cartes (une seule ligne de réglages)."""
+    if request.method == "POST":
+        form = ReglagesForm(request.POST, instance=Reglages.charge())
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, "Réglages de la carte enregistrés."
+            )
+            return redirect("parametres")
+        # Formulaire en erreur : on reparde la page, champs remplis.
+        messages.error(
+            request, "Réglages refusés : corrige les valeurs."
+        )
+        return render(
+            request, "core/parametres.html", _parametres_contexte(form)
+        )
+    return redirect("parametres")
+
+
+@login_required
+@animateur_seulement
+def parametres_valeur_ajouter(request, liste):
+    """Ajout dans une liste de valeurs, depuis la page Paramètres."""
+    descr = _liste_ou_404(liste)
+    if request.method == "POST":
+        form = descr["form"](request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, f"{descr['singulier'].capitalize()} ajouté."
+            )
+        else:
+            messages.error(
+                request,
+                "Ajout refusé : vérifie le nom et l'ordre d'affichage.",
+            )
+    return redirect("parametres")
+
+
+@login_required
+@animateur_seulement
+def parametres_valeur_modifier(request, liste, pk):
+    """Modification d'une valeur d'une liste."""
+    descr = _liste_ou_404(liste)
+    valeur = get_object_or_404(descr["modele"], pk=pk)
+    if request.method == "POST":
+        form = descr["form"](request.POST, instance=valeur)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Valeur mise à jour.")
+            return redirect("parametres")
+    else:
+        form = descr["form"](instance=valeur)
+    return render(
+        request,
+        "core/parametres_form.html",
+        {
+            "section": "parametres",
+            "titre": f"Modifier : {valeur}",
+            "form": form,
+        },
+    )
+
+
+@login_required
+@animateur_seulement
+def parametres_valeur_supprimer(request, liste, pk):
+    """Suppression d'une valeur inutilisée — une valeur citée par des
+    postes ou le journal ne disparaît jamais (règle 1, PROTECT)."""
+    descr = _liste_ou_404(liste)
+    valeur = get_object_or_404(descr["modele"], pk=pk)
+    if request.method == "POST":
+        from django.db.models import ProtectedError
+
+        try:
+            valeur.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                f"« {valeur} » est cité par des postes ou des revues : "
+                "il ne peut pas disparaître.",
+            )
+        else:
+            messages.success(request, "Valeur retirée de la liste.")
+    return redirect("parametres")
