@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titre %}Équipe{% endblock %}
+{% block contenu %}
+<section class="boite large">
+  <h1>Équipe</h1>
+  <p class="apercu">Comptes du club : création, rôle animateur, déactivation.
+  Un compte désactivé ne peut plus se connecter ; les postes et actions passés
+  restent signés de son nom.</p>
+
+  <p class="ligne">
+    <a class="bouton" href="{% url 'equipe_creer' %}">Nouveau compte</a>
+  </p>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Identifiant</th>
+        <th>Nom</th>
+        <th>Rôle</th>
+        <th>Compte</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for compte in utilisateurs %}
+      <tr>
+        <td>{{ compte.username }}</td>
+        <td>{{ compte.get_full_name|default:"" }}</td>
+        <td>
+          {% if compte.is_animateur %}<span class="badge">animateur</span>{% endif %}
+          {% if compte.is_staff %}<span class="badge">staff</span>{% endif %}
+        </td>
+        <td>
+          {% if compte.is_active %}actif{% else %}<span class="apercu">désactivé</span>{% endif %}
+        </td>
+        <td><a href="{% url 'equipe_modifier' compte.pk %}">Modifier</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
