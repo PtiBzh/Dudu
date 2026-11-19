@@ -452,6 +452,15 @@ def action_creer(request, poste_pk):
             "Hors revue, seule l'animatrice ou l'animateur peut créer "
             "une action urgente (règle 5)."
         )
+    # Retour au passage guidé : accepté uniquement s'il désigne
+    # exactement l'écran du poste en cours d'examen — ajouter une
+    # action pendant une revue n'interrompt pas la revue.
+    retour = None
+    retour_demande = request.GET.get("retour") or request.POST.get("retour")
+    if revue and retour_demande:
+        attendu = reverse("revue_passage", args=[revue.pk, poste.pk])
+        if retour_demande == attendu:
+            retour = attendu
 
     form = ActionCreationForm(
         request.POST or None,
@@ -467,6 +476,9 @@ def action_creer(request, poste_pk):
         if action.longitude is None:
             action.longitude = poste.longitude
         action.save()
+        messages.success(request, f"Action « {action.intitule} » créée.")
+        if retour:
+            return redirect(retour)
         return redirect("action_detail", pk=action.pk)
     return render(
         request,
@@ -479,6 +491,7 @@ def action_creer(request, poste_pk):
             "poste_lat": dec6(poste.latitude),
             "poste_lng": dec6(poste.longitude),
             "revue": revue,
+            "retour": retour,
             "centre": centre_decimaux(),
             "zoom": zoom_courant(),
             "plans": plans_pour_cartes(),

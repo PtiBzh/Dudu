@@ -58,8 +58,9 @@
     {% else %}
     <p class="apercu">Aucune action encore décidée pour ce poste.</p>
     {% endif %}
+    {% url 'revue_passage' revue.pk poste.pk as url_passage %}
     <p>
-      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}?revue={{ revue.pk }}">Nouvelle action collégiale</a>
+      <a class="bouton discret" href="{% url 'action_creer' poste.pk %}?revue={{ revue.pk }}&retour={{ url_passage|urlencode }}">Nouvelle action collégiale</a>
     </p>
 
     {% if photos_avant %}

@@ -25,6 +25,7 @@
   <form method="post">
     {% csrf_token %}
     {% if revue %}<input type="hidden" name="revue" value="{{ revue.pk }}">{% endif %}
+    {% if retour %}<input type="hidden" name="retour" value="{{ retour }}">{% endif %}
     {% for champ in form.visible_fields %}
     <p {% if champ.errors %}class="champ-erreur"{% endif %}>
       <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
@@ -46,7 +47,7 @@
     {{ form.latitude }} {{ form.longitude }}
 
     <button type="submit">Enregistrer</button>
-    <a class="lien-retour" href="{% if action %}{% url 'action_detail' action.pk %}{% else %}{% url 'poste_detail' poste.pk %}{% endif %}">Annuler</a>
+    <a class="lien-retour" href="{% if retour %}{{ retour }}{% elif action %}{% url 'action_detail' action.pk %}{% else %}{% url 'poste_detail' poste.pk %}{% endif %}">Annuler</a>
   </form>
 </section>
 {% endblock %}
