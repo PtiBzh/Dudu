@@ -84,7 +84,7 @@
       <div id="mini-carte" class="mini-carte"
            data-lat="{{ centre.0 }}"
            data-lng="{{ centre.1 }}"
-           data-zoom="{{ zoom }}"></div>
+           data-zoom="{{ zoom|floatformat:'-2' }}"></div>
       <form method="post" action="{% url 'parametres_carte' %}">
         {% csrf_token %}
         <div class="zone-ajout">
