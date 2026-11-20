@@ -25,4 +25,7 @@ services:
       DUDU_TRAVAILLEURS: "${DUDU_TRAVAILLEURS:-3}"
     volumes:
       # Volume /data : base + photos + plans + sauvegardes locales.
-      - "${DUDU_VOLUME:-./data}:/data"
+      # :Z — Fedora/SELinux : le montage d'un dossier hôte doit être
+      # réétiqueté, sinon le conteneur n'y touche jamais (constaté sur
+      # la machine club le 20/11 — Silverblue). Sans effet ailleurs.
+      - "${DUDU_VOLUME:-./data}:/data:Z"
