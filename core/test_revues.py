@@ -300,7 +300,28 @@ class ActionsEnRevueTests(RevueFixture):
 
 
 class JournalImmuableTests(RevueFixture):
-    def test_revue_insupprimable(self):
+    """Règle 1, version recalibrée : l'histoire consignée (une
+    décision, une action) ne disparaît jamais ; une revue d'essai
+    vide, elle, se supprime (voir SuppressionRevueTests)."""
+
+    def test_revue_portant_des_decisions_insupprimable(self):
+        ChangementSatisfaction.objects.create(
+            revue=self.revue,
+            poste=self.poste,
+            ancienne=None,
+            nouvelle=self.a_ameliorer,
+        )
+        with self.assertRaises(PermissionDenied):
+            self.revue.delete()
+
+    def test_revue_portant_des_actions_insupprimable(self):
+        Action.objects.create(
+            poste=self.poste,
+            intitule="Regler la hauteur de la remorque",
+            responsable=self.alice,
+            echeance=timezone.localdate() + timedelta(days=7),
+            revue=self.revue,
+        )
         with self.assertRaises(PermissionDenied):
             self.revue.delete()
 
@@ -313,6 +334,83 @@ class JournalImmuableTests(RevueFixture):
         )
         with self.assertRaises(PermissionDenied):
             changement.delete()
+
+
+class SuppressionRevueTests(RevueFixture):
+    """Les revues d'essai vides se suppriment ; celles qui portent
+    une décision ou une action refusent avec un message."""
+
+    def test_revue_vide_se_supprime(self):
+        reponse = self.client.post(
+            reverse("revue_supprimer", args=[self.revue.pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(reponse.url, reverse("revues"))
+        self.assertEqual(Revue.objects.count(), 0)
+
+    def test_bouton_visible_si_vide(self):
+        reponse = self.client.get(
+            reverse("revue_detail", args=[self.revue.pk])
+        )
+        self.assertContains(reponse, "Supprimer")
+
+    def test_bouton_absent_si_elle_porte_une_decision(self):
+        ChangementSatisfaction.objects.create(
+            revue=self.revue,
+            poste=self.poste,
+            ancienne=None,
+            nouvelle=self.a_ameliorer,
+        )
+        reponse = self.client.get(
+            reverse("revue_detail", args=[self.revue.pk])
+        )
+        self.assertNotContains(reponse, "Supprimer")
+
+    def test_revue_avec_changements_refusee(self):
+        ChangementSatisfaction.objects.create(
+            revue=self.revue,
+            poste=self.poste,
+            ancienne=None,
+            nouvelle=self.a_ameliorer,
+        )
+        reponse = self.client.post(
+            reverse("revue_supprimer", args=[self.revue.pk]), follow=True
+        )
+        self.assertContains(reponse, "reste au journal")
+        self.assertEqual(Revue.objects.count(), 1)
+
+    def test_revue_avec_actions_refusee(self):
+        Action.objects.create(
+            poste=self.poste,
+            intitule="Regler la hauteur de la remorque",
+            responsable=self.alice,
+            echeance=timezone.localdate() + timedelta(days=7),
+            revue=self.revue,
+        )
+        reponse = self.client.post(
+            reverse("revue_supprimer", args=[self.revue.pk]), follow=True
+        )
+        self.assertContains(reponse, "reste au journal")
+        self.assertEqual(Revue.objects.count(), 1)
+
+    def test_anonyme_redirige(self):
+        self.client.logout()
+        reponse = self.client.post(
+            reverse("revue_supprimer", args=[self.revue.pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Revue.objects.count(), 1)
+
+    def test_get_ne_supprime_pas(self):
+        reponse = self.client.get(
+            reverse("revue_supprimer", args=[self.revue.pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Revue.objects.count(), 1)
+
+    def test_revue_inconnue_refusee(self):
+        reponse = self.client.post(reverse("revue_supprimer", args=[999]))
+        self.assertEqual(reponse.status_code, 404)
 
 
 class AffichageTests(RevueFixture):

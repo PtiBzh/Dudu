@@ -2,11 +2,11 @@
 JPEG, spec technique), « avant » au poste / « après » à l'action,
 règle des écrans n° 5 (avertissement non bloquant quand on clôture
 sans photo), vue avant/après sur le poste et en revue."""
+import os
 import tempfile
 from datetime import timedelta
 from io import BytesIO
 
-from django.core.exceptions import PermissionDenied
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -123,11 +123,6 @@ class PhotoAvantTests(PhotoFixture):
         self.assertEqual(reponse.status_code, 302)
         self.assertEqual(Photo.objects.count(), 0)
 
-    def test_suppression_impossible(self):
-        self.ajouter_photo_avant()
-        with self.assertRaises(PermissionDenied):
-            Photo.objects.get().delete()
-
 
 @override_settings(MEDIA_ROOT=MEDIAS_TESTS)
 class PhotoApresTests(PhotoFixture):
@@ -148,6 +143,64 @@ class PhotoApresTests(PhotoFixture):
     def test_animatrice_ajoute(self):
         self.client.login(username="lea", password="mot de passe-123")
         self.ajouter_photo_apres()
+        self.assertEqual(Photo.objects.count(), 1)
+
+
+@override_settings(MEDIA_ROOT=MEDIAS_TESTS)
+class SuppressionPhotoTests(PhotoFixture):
+    """Une photo importée par erreur se supprime : quiconque est
+    connecté, en POST ; le fichier part avec la fiche."""
+
+    def test_suppression_de_l_avant_revient_au_poste(self):
+        self.ajouter_photo_avant()
+        photo = Photo.objects.get()
+        chemin = photo.fichier.path
+        reponse = self.client.post(
+            reverse("photo_supprimer", args=[photo.pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(
+            reponse.url, reverse("poste_detail", args=[self.poste.pk])
+        )
+        self.assertEqual(Photo.objects.count(), 0)
+        self.assertFalse(os.path.exists(chemin))
+
+    def test_suppression_de_l_apres_revient_a_l_action(self):
+        self.ajouter_photo_apres()
+        photo = Photo.objects.get()
+        reponse = self.client.post(
+            reverse("photo_supprimer", args=[photo.pk])
+        )
+        self.assertEqual(
+            reponse.url, reverse("action_detail", args=[self.action.pk])
+        )
+        self.assertEqual(Photo.objects.count(), 0)
+
+    def test_tier_supprime_aussi(self):
+        """La suppression n'est pas réservée à l'auteur : l'essentiel
+        est de retomber sur une photo erronée, peu importe qui."""
+        self.ajouter_photo_avant()
+        self.client.login(username="bob", password="mot de passe-123")
+        reponse = self.client.post(
+            reverse("photo_supprimer", args=[Photo.objects.get().pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Photo.objects.count(), 0)
+
+    def test_anonyme_redirige(self):
+        self.ajouter_photo_avant()
+        self.client.logout()
+        reponse = self.client.post(
+            reverse("photo_supprimer", args=[Photo.objects.get().pk])
+        )
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Photo.objects.count(), 1)
+
+    def test_get_ne_supprime_pas(self):
+        self.ajouter_photo_avant()
+        photo = Photo.objects.get()
+        reponse = self.client.get(reverse("photo_supprimer", args=[photo.pk]))
+        self.assertEqual(reponse.status_code, 302)
         self.assertEqual(Photo.objects.count(), 1)
 
 
