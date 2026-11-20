@@ -19,6 +19,33 @@
   <p>{{ action.description|linebreaks }}</p>
   {% endif %}
 
+  <h2>Photo après</h2>
+  {% if action.photos_apres.count %}
+  <div class="galerie">
+    {% for photo in action.photos_apres.all %}
+    <figure>
+      <img class="photo" src="{{ photo.fichier.url }}" alt="Photo après — {{ action.intitule }}">
+      <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
+      <form class="ligne" method="post" action="{% url 'photo_supprimer' photo.pk %}">
+        {% csrf_token %}
+        <button class="lien danger" type="submit">Supprimer</button>
+      </form>
+    </figure>
+    {% endfor %}
+  </div>
+  {% elif action.statut == 'faite' %}
+  <p class="apercu">Action clôturée sans photo « après » : elle
+  témoigne du travail accompli, ajoute-la ici.</p>
+  {% endif %}
+  {% if modifiable %}
+  <form class="ligne" method="post" enctype="multipart/form-data"
+        action="{% url 'action_photo_ajouter' action.pk %}">
+    {% csrf_token %}
+    <input type="file" name="fichier" accept="image/*" required aria-label="Photo après">
+    <button class="bouton discret" type="submit">Ajouter la photo après</button>
+  </form>
+  {% endif %}
+
   <dl class="fiche">
     <dt>Responsable</dt>
     <dd>{{ action.responsable.get_full_name|default:action.responsable.username }}</dd>
@@ -35,29 +62,6 @@
     <dd>{{ action.latitude|floatformat:5 }}, {{ action.longitude|floatformat:5 }}</dd>
     {% endif %}
   </dl>
-
-  <h2>Photo après</h2>
-  {% if action.photos_apres.count %}
-  <div class="galerie">
-    {% for photo in action.photos_apres.all %}
-    <figure>
-      <img class="photo" src="{{ photo.fichier.url }}" alt="Photo après — {{ action.intitule }}">
-      <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
-    </figure>
-    {% endfor %}
-  </div>
-  {% elif action.statut == 'faite' %}
-  <p class="apercu">Action clôturée sans photo « après » : elle
-  témoigne du travail accompli, ajoute-la ici.</p>
-  {% endif %}
-  {% if modifiable %}
-  <form class="ligne" method="post" enctype="multipart/form-data"
-        action="{% url 'action_photo_ajouter' action.pk %}">
-    {% csrf_token %}
-    <input type="file" name="fichier" accept="image/*" required aria-label="Photo après">
-    <button class="bouton discret" type="submit">Ajouter la photo après</button>
-  </form>
-  {% endif %}
 
   <div class="actions">
     {% if modifiable %}

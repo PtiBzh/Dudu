@@ -6,6 +6,12 @@
     <h1>Revue du {{ revue.date|date:"j F Y" }}</h1>
     <a class="bouton" href="{% url 'revue_selection' revue.pk %}">Passer en revue</a>
     <a class="bouton discret" href="{% url 'revue_modifier' revue.pk %}">Modifier</a>
+    {% if revue_vide %}
+    <form class="ligne" method="post" action="{% url 'revue_supprimer' revue.pk %}">
+      {% csrf_token %}
+      <button class="lien danger" type="submit">Supprimer</button>
+    </form>
+    {% endif %}
   </div>
   <p class="apercu">
     {% if revue.participants.count %}

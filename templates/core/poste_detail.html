@@ -32,6 +32,31 @@
   <p>{{ poste.description|linebreaks }}</p>
   {% endif %}
 
+  <h2>Photos avant</h2>
+  {% if photos_avant %}
+  <div class="galerie">
+    {% for photo in photos_avant %}
+    <figure>
+      <img class="photo" src="{{ photo.fichier.url }}" alt="Photo avant — {{ poste.nom }}">
+      <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
+      <form class="ligne" method="post" action="{% url 'photo_supprimer' photo.pk %}">
+        {% csrf_token %}
+        <button class="lien danger" type="submit">Supprimer</button>
+      </form>
+    </figure>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="apercu">Aucune photo « avant » : documente la situation
+  constatée, elle témoignera plus tard du chemin parcouru.</p>
+  {% endif %}
+  <form class="ligne" method="post" enctype="multipart/form-data"
+        action="{% url 'poste_photo_ajouter' poste.pk %}">
+    {% csrf_token %}
+    <input type="file" name="fichier" accept="image/*" required aria-label="Photo avant">
+    <button class="bouton discret" type="submit">Ajouter la photo avant</button>
+  </form>
+
   <h2>Santé / Sécurité</h2>
   <dl class="fiche">
     <dt>Gravité potentielle</dt>
@@ -89,27 +114,6 @@
   {% else %}
   <p class="apercu">Aucune action encore décidée pour ce poste.</p>
   {% endif %}
-
-  <h2>Photos avant</h2>
-  {% if photos_avant %}
-  <div class="galerie">
-    {% for photo in photos_avant %}
-    <figure>
-      <img class="photo" src="{{ photo.fichier.url }}" alt="Photo avant — {{ poste.nom }}">
-      <figcaption class="apercu">Par {{ photo.auteur.get_full_name|default:photo.auteur.username }} le {{ photo.date|date:"j F Y" }}</figcaption>
-    </figure>
-    {% endfor %}
-  </div>
-  {% else %}
-  <p class="apercu">Aucune photo « avant » : documente la situation
-  constatée, elle témoignera plus tard du chemin parcouru.</p>
-  {% endif %}
-  <form class="ligne" method="post" enctype="multipart/form-data"
-        action="{% url 'poste_photo_ajouter' poste.pk %}">
-    {% csrf_token %}
-    <input type="file" name="fichier" accept="image/*" required aria-label="Photo avant">
-    <button class="bouton discret" type="submit">Ajouter la photo avant</button>
-  </form>
 
   {% if paires %}
   <h2>Avant / après</h2>
