@@ -383,14 +383,18 @@ class Revue(models.Model):
         return f"Revue du {self.date:%d/%m/%Y}"
 
     def delete(self, *args, **kwargs):
-        """Règle 1 : une revue est un journal historique, elle ne
-        disparaît jamais."""
+        """Règle 1 : l'histoire consignée ne disparaît jamais — une
+        revue qui porte une décision ou une action reste au journal.
+        Une revue VIDE (aucune décision, aucune action) n'est qu'un
+        essai de l'équipe : elle se supprime."""
         from django.core.exceptions import PermissionDenied
 
-        raise PermissionDenied(
-            "Une revue ne se supprime pas : c'est le journal "
-            "historique de l'équipe (règle 1)."
-        )
+        if self.changements.exists() or self.actions.exists():
+            raise PermissionDenied(
+                "Cette revue porte des décisions ou des actions : "
+                "elle reste au journal (règle 1)."
+            )
+        return super().delete(*args, **kwargs)
 
 
 class ChangementSatisfaction(models.Model):
@@ -523,14 +527,6 @@ class Photo(models.Model):
                     "Une photo « après » documente une action, pas un poste."
                 )
 
-    def delete(self, *args, **kwargs):
-        """Règle 1 : une photo témoigne, elle ne disparaît pas."""
-        from django.core.exceptions import PermissionDenied
-
-        raise PermissionDenied(
-            "Une photo ne se supprime pas : elle témoigne du chemin "
-            "parcouru (règle 1)."
-        )
 
 
 def dossier_plans(instance, filename):

@@ -15,6 +15,11 @@ urlpatterns = [
     path("revues/nouvelle/", views.revue_creer, name="revue_creer"),
     path("revues/<int:pk>/", views.revue_detail, name="revue_detail"),
     path("revues/<int:pk>/modifier/", views.revue_modifier, name="revue_modifier"),
+    path(
+        "revues/<int:pk>/supprimer/",
+        views.revue_supprimer,
+        name="revue_supprimer",
+    ),
     path("revues/<int:pk>/postes/", views.revue_poste_ajouter, name="revue_poste_ajouter"),
     path(
         "revues/<int:pk>/postes/<int:poste_pk>/retirer/",
@@ -69,6 +74,11 @@ urlpatterns = [
         "actions/<int:pk>/photos/",
         views.action_photo_ajouter,
         name="action_photo_ajouter",
+    ),
+    path(
+        "photos/<int:pk>/supprimer/",
+        views.photo_supprimer,
+        name="photo_supprimer",
     ),
     path("plans/", views.plans, name="plans"),
     path("plans/nouveau/", views.plan_nouveau, name="plan_nouveau"),

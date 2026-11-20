@@ -646,6 +646,24 @@ def action_photo_ajouter(request, pk):
 
 
 @login_required
+def photo_supprimer(request, pk):
+    """Supprime une photo et son fichier (POST uniquement) : quiconque
+    est connecté peut retomber sur un import erroné. Le retour se
+    fait sur la fiche d'où la photo vient."""
+    photo = get_object_or_404(Photo, pk=pk)
+    if photo.poste:
+        cible = redirect("poste_detail", pk=photo.poste.pk)
+    else:
+        cible = redirect("action_detail", pk=photo.action.pk)
+    if request.method == "POST":
+        if photo.fichier:
+            photo.fichier.delete(save=False)
+        photo.delete()
+        messages.success(request, "Photo supprimée, fichier retiré.")
+    return cible
+
+
+@login_required
 def revues(request):
     """Journal historique : toutes les revues, de la plus récente à
     la plus ancienne."""
@@ -689,6 +707,31 @@ def revue_modifier(request, pk):
             "revue": revue,
         },
     )
+
+
+@login_required
+def revue_supprimer(request, pk):
+    """Supprime une revue VIDE (POST uniquement) : les revues
+    d'essai partent, celles qui portent une décision ou une action
+    restent au journal (règle 1)."""
+    revue = get_object_or_404(Revue, pk=pk)
+    if request.method == "POST":
+        try:
+            revue.delete()
+        except PermissionDenied:
+            messages.error(
+                request,
+                "Cette revue porte des décisions ou des actions : "
+                "elle reste au journal.",
+            )
+            return redirect("revue_detail", pk=revue.pk)
+        messages.success(
+            request,
+            f"Revue du {revue.date:%d/%m/%Y} supprimée (aucune "
+            "décision ni action n'y était consignée).",
+        )
+        return redirect("revues")
+    return redirect("revue_detail", pk=revue.pk)
 
 
 @login_required
@@ -737,6 +780,10 @@ def revue_detail(request, pk):
         ),
         "actions": revue.actions.select_related("poste", "responsable"),
         "paires_cloturees": paires_cloturees,
+        # Une revue vide (aucune décision, aucune action) peut être
+        # une revue d'essai : la fiche propose alors la suppression.
+        "revue_vide": not revue.changements.exists()
+        and not revue.actions.exists(),
     }
     return render(request, "core/revue_detail.html", context)
 
